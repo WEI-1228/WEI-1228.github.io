@@ -278,7 +278,7 @@
 <p><img src="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/image-20211217163352654.png" srcset="/img/loading.gif" lazyload alt="index与src的对应关系"></p>
 <p>这样，每个<code>index</code>的位置，都对应着相应位置一个<code>src</code>的数。我们先在脑子中建立这样一个对应关系的印象，下面会用到这个对应关系。</p>
 <p>通过给的示例<code>self[index[i][j][k]][j][k] = src[i][j][k]</code>可以发现<code>src</code>中的<code>!dim</code>维度的索引（在这个例子中<code>dim=0</code>，<code>!dim</code>列就是第<code>1</code>维度），与<code>x</code>中对应维度的索引一一对应的，<strong>也就是说<code>src</code>第<code>j</code>列的数字，一定是放到<code>x</code>的第<code>j</code>列</strong>，那么你将<code>src</code>想成一列一列的数</p>
-<p><img src="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/image-20211217164211956.png" srcset="/img/loading.gif" lazyload alt="image-20211217164211956"></p>
+<p><img src="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/image-20211217164211956.png" srcset="/img/loading.gif" lazyload alt="按照列划分src"></p>
 <p>每一列的数，都要放到<code>x</code>的对应列中去，我们来看结果是不是这样的</p>
 <p><img src="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/image-20211217164657790.png" srcset="/img/loading.gif" lazyload alt="scatter之后的x"></p>
 <p>可以看到，经过处理后，<code>x</code>的每一列数字，就是对应到<code>src</code>每一列数字上，只是在这一列上的顺序不同。那么这个顺序怎么确定呢？这就要用到我们上面画的对应关系了，<code>src</code>对应位置的<code>index</code>作为索引，放到<code>x</code>对应列上的位置去，就得到了最终结果。也就是说，**<code>index</code>的每一列都是作为<code>src</code>对应列的顺序存在的**。</p>
