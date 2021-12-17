@@ -18,7 +18,7 @@
   <meta name="author" content="Bobo">
   <meta name="keywords" content="">
   
-  <title>十一月计划及完成情况 - Bobo&#39;s Blog</title>
+  <title>【pytorch笔记】pytorch中tensor.scatter_函数理解 - Bobo&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
@@ -191,7 +191,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="十一月计划及完成情况">
+            <span class="h2" id="subtitle" title="【pytorch笔记】pytorch中tensor.scatter_函数理解">
               
             </span>
 
@@ -201,8 +201,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-11-30 22:25" pubdate>
-        2021年11月30日 晚上
+      <time datetime="2021-12-17 15:44" pubdate>
+        2021年12月17日 下午
       </time>
     </span>
   
@@ -213,7 +213,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.1k 字
+      1.2k 字
     </span>
   
 
@@ -223,7 +223,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      11
+      16
        分钟
     </span>
   
@@ -261,231 +261,35 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">十一月计划及完成情况</h1>
+            <h1 style="display: none">【pytorch笔记】pytorch中tensor.scatter_函数理解</h1>
             
             <div class="markdown-body">
-              <p>11月1日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  打毛线</p>
-<p>打了四圈</p>
-</li>
-<li><p><input checked disabled type="checkbox">  西瓜书——半监督学习</p>
-<p>计算学习理论没看懂跳过了，半监督学习中的图半监督学习没看懂，其他都大概看懂了</p>
-</li>
-<li><p><input checked disabled type="checkbox">  信号与系统继续学习</p>
-</li>
-</ul>
-<hr>
-<p>11月2日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  GBDT和XGBoost</p>
-<p>GBDT看懂了，XGBoost看懂了一点，还有很多细节没搞懂，明天也可以继续深挖细节</p>
-</li>
-<li><p><input checked disabled type="checkbox">  信号与系统继续学习</p>
-<p>有一点没太学明白，明天要看书复习一遍</p>
-</li>
-<li><p><input checked disabled type="checkbox">  跑步</p>
-<p>一公里5分06。。。好垃圾</p>
-</li>
-<li><p><input checked disabled type="checkbox">  打毛线</p>
-</li>
-</ul>
-<hr>
-<p>11月3日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  XGBoost</p>
-<p>完全疏通，很爽</p>
-</li>
-<li><p><input checked disabled type="checkbox">  体测</p>
-<p>跳远2.24m、引体向上3、一千米4：40</p>
-</li>
-<li><p><input disabled type="checkbox">  信号与系统复习</p>
-<p>下午体测，晚上继续看了会XGBOOST，就没看，明天开始复习</p>
-</li>
-</ul>
-<p>最近还要开始深度学习课程了，先把李宏毅的深度学习看完，代码也要开始练习了，有能力还能看斯坦福的CS224N</p>
-<hr>
-<p>11月4日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  信号与系统复习</p>
-</li>
-<li><p><input checked disabled type="checkbox">  西瓜书——概率图模型</p>
-<p>开了个头，明天继续</p>
-</li>
-<li><p><input checked disabled type="checkbox">  打毛线</p>
-</li>
-</ul>
-<hr>
-<p>11月5日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 隐马尔可夫模型吃透</li>
-<li><input checked disabled type="checkbox"> 打毛线</li>
-</ul>
-<hr>
-<p>11月6日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 条件随机场的定义及表示形式</li>
-</ul>
-<hr>
-<p>11月7日</p>
-<ul>
-<li><input checked disabled type="checkbox"> CRF——最大熵模型</li>
-</ul>
-<p>​    还是很模糊明天看博客</p>
-<hr>
-<p>11月8日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  最大熵模型与CRF</p>
-<p>最大熵模型基本完成，只是最后的IIS推导还没看明白，CRF最后带入求解也没看懂，下次再看吧</p>
-</li>
-</ul>
-<hr>
-<p>11月9日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 信号与系统学习+复习</li>
-</ul>
-<hr>
-<p>11月10日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  深度学习——李宏毅</p>
-<p>把HW1重新做了一遍理解了一遍，课程学了一个章节</p>
-</li>
-</ul>
-<p>明天要开始复习现代企业管理了，有时间还要再继续改进一下HW1，把误差再降低一些</p>
-<hr>
-<p>11月11日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 现代企业管理复习（0~1章）</li>
-</ul>
-<hr>
-<p>11月12日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 现代企业管理复习（2章）</li>
-</ul>
-<hr>
-<p>11月13日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  现代企业管理复习（3~4章）</p>
-</li>
-<li><p><input disabled type="checkbox">  信号与系统学习</p>
-<p>学了三节视频，尽早把第四章学完，还有把ML第一个作业继续调一下，不然总感觉心里有块石头吊着，每天都很不舒服</p>
-</li>
-</ul>
-<hr>
-<p>11月14日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  现代企业管理复习（5章）</p>
-</li>
-<li><p><input checked disabled type="checkbox">  信号与系统学习</p>
-</li>
-<li><p><input checked disabled type="checkbox">  HW1调试</p>
-</li>
-</ul>
-<hr>
-<p>11月15日</p>
-<ul>
-<li><input checked disabled type="checkbox"> HW1调试</li>
-<li><input disabled type="checkbox"> 现代企业管理复习</li>
-</ul>
-<hr>
-<p>11月16日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 现代企业管理复习</li>
-<li><input checked disabled type="checkbox"> 信号与系统学习</li>
-<li><input checked disabled type="checkbox"> HW2调试</li>
-</ul>
-<hr>
-<p>11月17日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 现代企业管理复习</li>
-</ul>
-<hr>
-<p>11月18日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 现代企业管理复习</li>
-<li><input checked disabled type="checkbox"> 一拳超人漫画看完</li>
-</ul>
-<hr>
-<p>11月19日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 现代企业管理复习</li>
-<li><input checked disabled type="checkbox"> 政审表</li>
-<li><input checked disabled type="checkbox"> 宝贝作业修改</li>
-<li><input checked disabled type="checkbox"> 毕业设计询问</li>
-<li><input disabled type="checkbox"> 打围巾结束</li>
-</ul>
-<p>​    预测失误，1m2根本不够长，还需要继续努力</p>
-<ul>
-<li><p><input disabled type="checkbox">  宝贝小作文</p>
-<p>写了一半</p>
-</li>
-</ul>
-<hr>
-<p>11月20日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 形式与政策</li>
-<li><input checked disabled type="checkbox"> 小作文写信</li>
-</ul>
-<p>明天开始继续深度学习，还有毕业论文相关的论文开始看</p>
-<hr>
-<p>11月21日</p>
-<ul>
-<li><input checked disabled type="checkbox"> transformer学习</li>
-</ul>
-<hr>
-<p>11月22日</p>
-<ul>
-<li><input checked disabled type="checkbox"> BERT学习</li>
-<li><input checked disabled type="checkbox"> 论文阅读</li>
-</ul>
-<hr>
-<p>11月23日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 论文阅读</li>
-</ul>
-<hr>
-<p>11月24日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 论文阅读</li>
-</ul>
-<hr>
-<p>11月25日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 论文阅读</li>
-</ul>
-<hr>
-<p>11月26日</p>
-<ul>
-<li><input checked disabled type="checkbox"> 组会</li>
-</ul>
-<hr>
-<p>11月27日</p>
-<p>11月28日</p>
-<ul>
-<li><p><input checked disabled type="checkbox">  进击的巨人</p>
-</li>
-<li><p><input checked disabled type="checkbox">  休息</p>
-</li>
-</ul>
-<hr>
-<p>11月29日</p>
-<ul>
-<li><input checked disabled type="checkbox"> HW4，attention看完</li>
-</ul>
-<p>看了一天的这个作业代码，训练一次要两个小时，根本没办法写。一晚上看pad_sequences没看明白，到宿舍看明白了一些，明天要写一篇博客记录一下，确实有点难理解。还有collate_fn没理解，明天再看几篇博客理解理解。下一步还要看attention源码，pytorch也要多熟悉了。</p>
-<hr>
-<p>11月30日</p>
-<p>问题：现在基本上都是在看别人的项目代码，自己还没有试着写过代码，看着别人的代码就觉得很有逻辑，但是如果自己写起来估计就不太写得好，怎么办？</p>
-<ul>
-<li><input checked disabled type="checkbox"> attention is all you need论文阅读</li>
-<li><input checked disabled type="checkbox"> collate_fn作用</li>
-<li><input checked disabled type="checkbox"> pytorch的attention源码阅读</li>
-</ul>
-<p>​    看了但没完全看懂，明天再试着继续看一下，还有论文conformer也看看</p>
-<hr>
-<div class="note note-info">
-            <p>这个月计划完成的还行，中间有几天看动漫看的着迷了，从早看到玩，需要改进。还有要去锻炼了，体检都说我超重了/(ㄒoㄒ)/~~。</p><p>下个月要继续pytorch的学习使用，还有李宏毅深度学习看完来。待学习的任务还有CS224N、线性代数基础书、西瓜书很多公式的推导、统计学习方法学习、深度学习代码编写。</p>
-          </div>
+              <p>Pytorch中的函数后加上“_”表示在原始tensor的基础上操作，改变原始tensor，若是torch.的函数，则不会改变原始tensor，而是会生成一个新的tensor，因此<code>torch.scatter()</code>和<code>tensor.scatter_()</code>函数的区别就在于是否改变原tensor。下面我们就通过<code>scatter_()</code>函数来介绍该函数作用。</p>
+<p><code>Tensor.scatter_</code>(<em><code>dim</code></em>, <em><code>index</code></em>, <em><code>src</code></em>, <em><code>reduce=None</code></em>) → <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor">Tensor</a></p>
+<p>我们首先通过阅读<a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.Tensor.scatter_.html#torch.Tensor.scatter_">官方文档</a>来看看这个函数的作用是什么。翻译过来主要意思就是，将<code>src</code>中的元素，按照index的顺序放入<code>dim</code>维度中。下面还举了一个3-D的例子</p>
+<figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs inform7">self<span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 0<br>self<span class="hljs-comment">[i]</span><span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span><span class="hljs-comment">[k]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 1<br>self<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 2<br></code></pre></td></tr></table></figure>
+
+<p>如果你能一眼看出这个是怎么做的，那就可以退出不用看了。这三行表示的是在三个不同维度上对将src写到self函数中的效果。其中最关键的位置是<code>index[i][j][k]</code>，因为它决定了<code>src[i][j][k]</code>放进self中的位置。因此，<code>src</code>每个维度都必须&gt;=<code>index</code>的每个维度，因为每个<code>index[i][j][k]</code>都对应着一个<code>src[i][j][k]</code>。</p>
+<p>我通过二维的例子来进行解释。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python">x = torch.zeros((<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#         [0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#		  [0., 0., 0., 0., 0.]])</span><br><br>index = torch.tensor([[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>],[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]])<br><span class="hljs-comment"># tensor([[1, 0, 2, 1, 1],</span><br><span class="hljs-comment">#         [0, 1, 1, 0, 2]])</span><br><br>src = torch.randn((<span class="hljs-number">2</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[-0.4014, -0.7197,  1.1508,  1.1462, -1.0964],</span><br><span class="hljs-comment">#         [ 1.0820, -2.2081,  0.6046,  0.3120, -0.1554]])</span><br><br>x = x.scatter_(dim=<span class="hljs-number">0</span>, index=index, src=src)<br><span class="hljs-comment"># tensor([[ 1.0820, -0.7197,  0.0000,  0.3120,  0.0000],</span><br><span class="hljs-comment">#         [-0.4014, -2.2081,  0.6046,  1.1462, -1.0964],</span><br><span class="hljs-comment">#         [ 0.0000,  0.0000,  1.1508,  0.0000, -0.1554]])</span><br></code></pre></td></tr></table></figure>
+
+<p>上面怎么得到的呢？你可以按照下面的方式想，就能很容易直观得到结果。</p>
+<p>我们先将<code>index</code>每个位置上的数与<code>src</code>中每个位置上的数对应起来，如下图</p>
+<p><img src="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/image-20211217163352654.png" srcset="/img/loading.gif" lazyload alt="index与src的对应关系"></p>
+<p>这样，每个<code>index</code>的位置，都对应着相应位置一个<code>src</code>的数。我们先在脑子中建立这样一个对应关系的印象，下面会用到这个对应关系。</p>
+<p>通过给的示例<code>self[index[i][j][k]][j][k] = src[i][j][k]</code>可以发现<code>src</code>中的<code>!dim</code>维度的索引（在这个例子中<code>dim=0</code>，<code>!dim</code>列就是第<code>1</code>维度），与<code>x</code>中对应维度的索引一一对应的，<strong>也就是说<code>src</code>第<code>j</code>列的数字，一定是放到<code>x</code>的第<code>j</code>列</strong>，那么你将<code>src</code>想成一列一列的数</p>
+<p><img src="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/image-20211217164211956.png" srcset="/img/loading.gif" lazyload alt="image-20211217164211956"></p>
+<p>每一列的数，都要放到<code>x</code>的对应列中去，我们来看结果是不是这样的</p>
+<p><img src="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/image-20211217164657790.png" srcset="/img/loading.gif" lazyload alt="scatter之后的x"></p>
+<p>可以看到，经过处理后，<code>x</code>的每一列数字，就是对应到<code>src</code>每一列数字上，只是在这一列上的顺序不同。那么这个顺序怎么确定呢？这就要用到我们上面画的对应关系了，<code>src</code>对应位置的<code>index</code>作为索引，放到<code>x</code>对应列上的位置去，就得到了最终结果。也就是说，**<code>index</code>的每一列都是作为<code>src</code>对应列的顺序存在的**。</p>
+<p><strong>最后我们整合一遍，首先看参数<code>dim=0</code>，说明除了第<code>0</code>维度，在其他维度上，<code>src</code>与<code>x</code>的索引是一致的，具体到我们的例子里来说，就是<code>src</code>的每一列与<code>x</code>的每一列位置是对应的，要将<code>src</code>每一列元素，填充到<code>x</code>的每一列中去。但对应的列的填充顺序是什么呢？当然就是看<code>index</code>上，每一列的数字了。</strong></p>
+<p>下面我们再来举一个<code>dim=1</code>的例子。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python">x = torch.zeros((<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#         [0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#		  [0., 0., 0., 0., 0.]])</span><br><br>index = torch.tensor([[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]])<br><span class="hljs-comment"># tensor([[0, 1, 3, 2, 4],</span><br><span class="hljs-comment">#         [1, 3, 4, 0, 2]])</span><br><br>src = torch.randn((<span class="hljs-number">2</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[ 0.2267, -1.5383, -1.1069, -1.3450, -0.5601],</span><br><span class="hljs-comment">#         [ 0.5058,  1.3454,  0.1888, -0.0366, -1.2225]])</span><br><br>x = x.scatter_(dim=<span class="hljs-number">1</span>, index=index, src=src)<br></code></pre></td></tr></table></figure>
+
+<p>大家可以先思考一下这个结果是什么？</p>
+<p>按照刚才的方法，首先由于<code>dim=1</code>，因此对于<code>!dim=1</code>的维度，<code>src</code>与<code>x</code>的索引是一致的，在本例中也就是行，<code>src</code>中每行元素应该填充到<code>x</code>的每一行去，因此，<code>x</code>的第三行肯定是空的，因为<code>src</code>只有两行数。而这两行数应该怎么填充呢？当然就是将<code>index</code>中对应行的数当作索引，把<code>src</code>中的数按照索引放到<code>x</code>中去啦。第一行是<code>[ 0.2267, -1.5383, -1.1069, -1.3450, -0.5601]</code>，索引为<code>[0, 1, 3, 2, 4]</code>，按照索引对第一行排序，<code>0.2267</code>放第<code>0</code>个位置，<code>-1.5383</code>放第<code>1</code>个位置，<code>-1.1069</code>放第<code>3</code>个位置…得到<code> [ 0.2267, -1.5383, -1.3450, -1.1069, -0.5601]</code>，第二行自己算算吧，最后结果就是</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">tensor([[ <span class="hljs-number">0.2267</span>, -<span class="hljs-number">1.5383</span>, -<span class="hljs-number">1.3450</span>, -<span class="hljs-number">1.1069</span>, -<span class="hljs-number">0.5601</span>],<br>        [-<span class="hljs-number">0.0366</span>,  <span class="hljs-number">0.5058</span>, -<span class="hljs-number">1.2225</span>,  <span class="hljs-number">1.3454</span>,  <span class="hljs-number">0.1888</span>],<br>        [ <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>]])<br></code></pre></td></tr></table></figure>
+
 
             </div>
             <hr>
@@ -495,7 +299,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E5%88%92/">计划</a>
+                      <a class="hover-with-bg" href="/categories/Pytorch%E7%AC%94%E8%AE%B0/">Pytorch笔记</a>
                     
                   </div>
                 
@@ -503,7 +307,7 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/%E8%AE%A1%E5%88%92/">计划</a>
+                      <a class="hover-with-bg" href="/tags/Pytorch/">Pytorch</a>
                     
                   </div>
                 
@@ -520,18 +324,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/12/17/%E3%80%90pytorch%E7%AC%94%E8%AE%B0%E3%80%91pytorch%E4%B8%ADtensor-scatter-%E5%87%BD%E6%95%B0%E7%90%86%E8%A7%A3/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">【pytorch笔记】pytorch中tensor.scatter_函数理解</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/11/01/%E5%8D%81%E6%9C%88%E8%AE%A1%E5%88%92%E5%8F%8A%E5%AE%8C%E6%88%90%E6%83%85%E5%86%B5/">
-                        <span class="hidden-mobile">十月计划及完成情况</span>
+                      <a href="/2021/11/30/%E5%8D%81%E4%B8%80%E6%9C%88%E8%AE%A1%E5%88%92%E5%8F%8A%E5%AE%8C%E6%88%90%E6%83%85%E5%86%B5/">
+                        <span class="hidden-mobile">十一月计划及完成情况</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
