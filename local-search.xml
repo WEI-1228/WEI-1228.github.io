@@ -4,6 +4,33 @@
   
   
   <entry>
+    <title>【论文阅读】Longformer：The Long-Document Transformer</title>
+    <link href="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/"/>
+    <url>/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/</url>
+    
+    <content type="html"><![CDATA[<p><strong><a href="https://arxiv.org/abs/2004.05150">原文🔗</a></strong></p><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>基于Transformer的模型不能很好的处理长文本任务，原因是它的时间空间复杂度是文本长度的二次方。为了解决这个限制，作者提出了新的Transformer模型——Longformer，其复杂度是基于文本长度线性的，因此能更容易的去处理上千个Token或更长的文本。</p><p>Longformer的attention机制能完全代替标准attention机制，它结合了局部滑动窗口的attention与任务驱动的全局attention。Longformer的效果在WikiHop数据集和TriviaQA数据集的效果超过了RoBERTa模型，并且达到了新的SOTA。</p><p>作者还提出了基于Longformer的Encoder-Decoder模型（LED），来处理文本生成任务，并且取得了良好的效果。</p><h2 id="Longformer实现细节"><a href="#Longformer实现细节" class="headerlink" title="Longformer实现细节"></a>Longformer实现细节</h2><p>原始的Transformer模型attention部分的的时间与空间复杂度是$O(n^2)$，其中$n$是文本的长度。为了解决这个挑战，作者将原始的满的attention矩阵稀疏化，通过一种定义好的“注意力模式（Attention pattern）”，指定输入中哪些位置的token相互关注（attend）。下面介绍具体的注意力模式有哪些。</p><p><strong>滑动窗口</strong></p><p>由于局部的上下文是非常重要的，因此注意力模式在每个token附近使用了固定大小的attention window，然后使用多层这样的模型，就能获得非常大的感知野。其中最顶层能感受到句子的所有位置，并且有能力输出包含句子所有位置信息的整个句子的表示，就像CNN一样。</p><p>将窗口的大小固定为$w$，每个token能够attend自己两边$\frac{1}{2}w$个token，其计算复杂度就是$O(n\times w)$。由于$w$远小于$n$，因此复杂度是与句子长度$n$呈线性关系的。在一个具有 $l$ 层的transformer模型中，最顶层的感受野大小是 $l\times w$（假设每一层的$w$是固定的）。根据不同的应用场景，在每一层使用不同大小的$w$可能有助于平衡模型的效率和表示能力，若$w$越大，则每个token需要attend的数量越大，表示能力也越强，但计算复杂度也变大，反之亦然。</p><p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221134942417.png" alt="每一层窗口的视野"></p><p><strong>膨胀的滑动窗口</strong></p><p>为了进一步扩大感受野但不增加计算量，滑动窗口能被”膨胀“。这与膨胀的CNN非常类似，使窗口有一个大小为 $d$ 的膨胀间隔，也就是相当于将原本的连续的窗口，中间增加间隔。假设每一层的$w$和$d$是固定的，那么感受野的大小就膨胀成了$l \times d \times w$，这样就能让视野扩大到上万个token，即使 $d$ 是个很小的值。</p><p><strong>全局Attention</strong></p><p>在本方法中，滑动窗口和膨胀的attention机制对于学习特定任务的表示还不够灵活。因此，作者在输入的某些预先选定的位置添加了全局attention。重要的是，这些全局的attention是对称的，也就是说：全局attention位置的token会attend句子中的所有token，反过来，句子中的所有token都会attend那些具有全局attention特性的token。</p><p>例如，对于分类任务，全局attention用在了[CLS]的位置上，而对于QA任务，全局attention用在了所有的问题token上。</p><p>由于这一类具有全局attention性质的token相对于$n$来说非常小，而且与$n$是不相关的，因此结合了局部attention和全局attention的复杂度还是$O(n)$。</p><p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221140701806.png" alt="各种方法的attention矩阵"></p><p><strong>全局Attention的线性投影</strong></p><p>给定了线性投影矩阵$Q,K,V$，原始的Transformer模型计算attention分数公式为：<br>$$<br>Attention(Q,K,V)=softmax(\frac{QK^T}{\sqrt{d_k}})V<br>$$<br>在Longformer中，使用了两组投影。第一组$Q_s,K_s,V_s$用来计算滑动窗口的attention分数，第二组$Q_g,K_g,V_g$用来计算全局的attention分数。额外的的那个投影矩阵对不同类型的attention的建模提供了灵活性，并且证明了它对下游任务有着好的表现是非常关键的。$Q_g,K_g,V_g$是用与$Q_s,K_s,V_s$对应的值初始化的。</p><h2 id="自回归语言模型"><a href="#自回归语言模型" class="headerlink" title="自回归语言模型"></a>自回归语言模型</h2><p>自回归，或者从左到右的的语言模型被宽泛的定义为给定前面的token/characters，预测后续一个token/characters的概率分布。这在自然语言处理中是一个最基本的任务，并且之前很多使用transformer来处理长文本的模型都靠这个任务来评估效果。本文也不例外。</p><p><strong>Attention Pattern</strong></p><p>在自回归语言模型中作者使用了膨胀的滑动窗口矩阵。作者在每一层都使用了不同的窗口大小。具体来说，在底层使用小的窗口大小，并且随着层数上升，增大窗口的大小。这就使得顶层的网络能学到高层的文本表示，因为底层的网络能获取到局部信息。此外，这样做还能平衡模型的效率和表现。</p><p><strong>实验</strong></p><p>作者实验时使用了阶梯式的训练步骤，在训练过程中慢慢增加窗口的大小和输入文本的长度。</p><p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221150404796.png" alt="实验结果"></p><h2 id="Longformer-Encoder-Decoder-LED"><a href="#Longformer-Encoder-Decoder-LED" class="headerlink" title="Longformer-Encoder-Decoder(LED)"></a>Longformer-Encoder-Decoder(LED)</h2><p>原始的Transformer是Encoder-Decoder结构的模型，目的是为了解决seq2seq的任务，比如摘要和翻译。然而这些模型都不能很好的接收长文本的输入。</p><p>为了解决长文本的seq2seq任务，作者提出了Longformer的变体，包含了与Transformer一样的encoder,decoder结构，唯一不同的在于将原始encoder中的的full attention改为了Longformer中更高效的local+global的attention模式。decoder对encoder的全部输入和之前的decoder输出使用了full attention矩阵。</p><p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221151623932.png" alt="LED效果分析"></p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文提出了Longformer，一种基于transformer的模型，能够处理长文本，这就使得它能更加方便的处理某些任务，不需要像原始方法一样将长文本截断，也不需要复杂的结构来结合这些截断的文本信息。</p><p>Longformer使用了一种attention机制，能结合全局和局部的信息，并且能与输入的长度呈线性复杂度。Longformer在很多数据集上都取得了SOTA的效果，在WiKiHop和TriviaQA上还超过了Roberta，达到了新的SOTA。最后还提出了LED，一种Longformer的变体，能处理seq2seq任务，并且在arXiv长文本摘要任务上取得了好的效果。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>论文笔记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>论文笔记</tag>
+      
+      <tag>Transformer</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>【Pytorch笔记】Pytorch之scatter函数用法</title>
     <link href="/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/"/>
     <url>/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/</url>

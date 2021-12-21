@@ -18,7 +18,7 @@
   <meta name="author" content="Bobo">
   <meta name="keywords" content="">
   
-  <title>【Pytorch笔记】Pytorch之scatter函数用法 - Bobo&#39;s Blog</title>
+  <title>【论文阅读】Longformer：The Long-Document Transformer - Bobo&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
@@ -191,7 +191,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="【Pytorch笔记】Pytorch之scatter函数用法">
+            <span class="h2" id="subtitle" title="【论文阅读】Longformer：The Long-Document Transformer">
               
             </span>
 
@@ -201,8 +201,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-12-18 10:39" pubdate>
-        2021年12月18日 上午
+      <time datetime="2021-12-20 16:18" pubdate>
+        2021年12月20日 下午
       </time>
     </span>
   
@@ -213,7 +213,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.2k 字
+      1.6k 字
     </span>
   
 
@@ -223,7 +223,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      16
+      17
        分钟
     </span>
   
@@ -261,34 +261,38 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">【Pytorch笔记】Pytorch之scatter函数用法</h1>
+            <h1 style="display: none">【论文阅读】Longformer：The Long-Document Transformer</h1>
             
             <div class="markdown-body">
-              <p>Pytorch中的函数后加上“_”表示在原始tensor的基础上操作，改变原始tensor，若是torch.的函数，则不会改变原始tensor，而是会生成一个新的tensor，因此<code>torch.scatter()</code>和<code>tensor.scatter_()</code>函数的区别就在于是否改变原tensor。下面我们就通过<code>scatter_()</code>函数来介绍该函数作用。</p>
-<p><code>Tensor.scatter_</code>(<em><code>dim</code></em>, <em><code>index</code></em>, <em><code>src</code></em>, <em><code>reduce=None</code></em>) → <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor">Tensor</a></p>
-<p>我们首先通过阅读<a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.Tensor.scatter_.html#torch.Tensor.scatter_">官方文档</a>来看看这个函数的作用是什么。翻译过来主要意思就是，将<code>src</code>中的元素，按照index的顺序放入<code>dim</code>维度中。下面还举了一个3-D的例子</p>
-<figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs inform7">self<span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 0<br>self<span class="hljs-comment">[i]</span><span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span><span class="hljs-comment">[k]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 1<br>self<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 2<br></code></pre></td></tr></table></figure>
-
-<p>如果你能一眼看出这个是怎么做的，那就可以退出不用看了。这三行表示的是在三个不同维度上对将src写到self函数中的效果。其中最关键的位置是<code>index[i][j][k]</code>，因为它决定了<code>src[i][j][k]</code>放进self中的位置。因此，<code>src</code>每个维度都必须&gt;=<code>index</code>的每个维度，因为每个<code>index[i][j][k]</code>都对应着一个<code>src[i][j][k]</code>。</p>
-<p>我通过二维的例子来进行解释。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python">x = torch.zeros((<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#         [0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#		  [0., 0., 0., 0., 0.]])</span><br><br>index = torch.tensor([[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>],[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]])<br><span class="hljs-comment"># tensor([[1, 0, 2, 1, 1],</span><br><span class="hljs-comment">#         [0, 1, 1, 0, 2]])</span><br><br>src = torch.randn((<span class="hljs-number">2</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[-0.4014, -0.7197,  1.1508,  1.1462, -1.0964],</span><br><span class="hljs-comment">#         [ 1.0820, -2.2081,  0.6046,  0.3120, -0.1554]])</span><br><br>x = x.scatter_(dim=<span class="hljs-number">0</span>, index=index, src=src)<br><span class="hljs-comment"># tensor([[ 1.0820, -0.7197,  0.0000,  0.3120,  0.0000],</span><br><span class="hljs-comment">#         [-0.4014, -2.2081,  0.6046,  1.1462, -1.0964],</span><br><span class="hljs-comment">#         [ 0.0000,  0.0000,  1.1508,  0.0000, -0.1554]])</span><br></code></pre></td></tr></table></figure>
-
-<p>上面怎么得到的呢？你可以按照下面的方式想，就能很容易直观得到结果。</p>
-<p>我们先将<code>index</code>每个位置上的数与<code>src</code>中每个位置上的数对应起来，如下图</p>
-<p><img src="/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/image-20211217163352654.png" srcset="/img/loading.gif" lazyload alt="index与src的对应关系"></p>
-<p>这样，每个<code>index</code>的位置，都对应着相应位置一个<code>src</code>的数。我们先在脑子中建立这样一个对应关系的印象，下面会用到这个对应关系。</p>
-<p>通过给的示例<code>self[index[i][j][k]][j][k] = src[i][j][k]</code>可以发现<code>src</code>中的<code>!dim</code>维度的索引（在这个例子中<code>dim=0</code>，<code>!dim</code>列就是第<code>1</code>维度），与<code>x</code>中对应维度的索引一一对应的，<strong>也就是说<code>src</code>第<code>j</code>列的数字，一定是放到<code>x</code>的第<code>j</code>列</strong>，那么你将<code>src</code>想成一列一列的数</p>
-<p><img src="/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/image-20211217164211956.png" srcset="/img/loading.gif" lazyload alt="按照列划分src"></p>
-<p>每一列的数，都要放到<code>x</code>的对应列中去，我们来看结果是不是这样的</p>
-<p><img src="/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/image-20211217164657790.png" srcset="/img/loading.gif" lazyload alt="scatter之后的x"></p>
-<p>可以看到，经过处理后，<code>x</code>的每一列数字，就是对应到<code>src</code>每一列数字上，只是在这一列上的顺序不同。那么这个顺序怎么确定呢？这就要用到我们上面画的对应关系了，<code>src</code>对应位置的<code>index</code>作为索引，放到<code>x</code>对应列上的位置去，就得到了最终结果。也就是说，**<code>index</code>的每一列都是作为<code>src</code>对应列的顺序存在的**。</p>
-<p><strong>最后我们整合一遍，首先看参数<code>dim=0</code>，说明除了第<code>0</code>维度，在其他维度上，<code>src</code>与<code>x</code>的索引是一致的，具体到我们的例子里来说，就是<code>src</code>的每一列与<code>x</code>的每一列位置是对应的，要将<code>src</code>每一列元素，填充到<code>x</code>的每一列中去。但对应的列的填充顺序是什么呢？当然就是看<code>index</code>上，每一列的数字了。</strong></p>
-<p>下面我们再来举一个<code>dim=1</code>的例子。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python">x = torch.zeros((<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#         [0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#		  [0., 0., 0., 0., 0.]])</span><br><br>index = torch.tensor([[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]])<br><span class="hljs-comment"># tensor([[0, 1, 3, 2, 4],</span><br><span class="hljs-comment">#         [1, 3, 4, 0, 2]])</span><br><br>src = torch.randn((<span class="hljs-number">2</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[ 0.2267, -1.5383, -1.1069, -1.3450, -0.5601],</span><br><span class="hljs-comment">#         [ 0.5058,  1.3454,  0.1888, -0.0366, -1.2225]])</span><br><br>x = x.scatter_(dim=<span class="hljs-number">1</span>, index=index, src=src)<br></code></pre></td></tr></table></figure>
-
-<p>大家可以先思考一下这个结果是什么？</p>
-<p>按照刚才的方法，首先由于<code>dim=1</code>，因此对于<code>!dim=1</code>的维度，<code>src</code>与<code>x</code>的索引是一致的，在本例中也就是行，<code>src</code>中每行元素应该填充到<code>x</code>的每一行去，因此，<code>x</code>的第三行肯定是空的，因为<code>src</code>只有两行数。而这两行数应该怎么填充呢？当然就是将<code>index</code>中对应行的数当作索引，把<code>src</code>中的数按照索引放到<code>x</code>中去啦。第一行是<code>[ 0.2267, -1.5383, -1.1069, -1.3450, -0.5601]</code>，索引为<code>[0, 1, 3, 2, 4]</code>，按照索引对第一行排序，<code>0.2267</code>放第<code>0</code>个位置，<code>-1.5383</code>放第<code>1</code>个位置，<code>-1.1069</code>放第<code>3</code>个位置…得到<code> [ 0.2267, -1.5383, -1.3450, -1.1069, -0.5601]</code>，第二行自己算算吧，最后结果就是</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">tensor([[ <span class="hljs-number">0.2267</span>, -<span class="hljs-number">1.5383</span>, -<span class="hljs-number">1.3450</span>, -<span class="hljs-number">1.1069</span>, -<span class="hljs-number">0.5601</span>],<br>        [-<span class="hljs-number">0.0366</span>,  <span class="hljs-number">0.5058</span>, -<span class="hljs-number">1.2225</span>,  <span class="hljs-number">1.3454</span>,  <span class="hljs-number">0.1888</span>],<br>        [ <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>]])<br></code></pre></td></tr></table></figure>
+              <p><strong><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2004.05150">原文🔗</a></strong></p>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>基于Transformer的模型不能很好的处理长文本任务，原因是它的时间空间复杂度是文本长度的二次方。为了解决这个限制，作者提出了新的Transformer模型——Longformer，其复杂度是基于文本长度线性的，因此能更容易的去处理上千个Token或更长的文本。</p>
+<p>Longformer的attention机制能完全代替标准attention机制，它结合了局部滑动窗口的attention与任务驱动的全局attention。Longformer的效果在WikiHop数据集和TriviaQA数据集的效果超过了RoBERTa模型，并且达到了新的SOTA。</p>
+<p>作者还提出了基于Longformer的Encoder-Decoder模型（LED），来处理文本生成任务，并且取得了良好的效果。</p>
+<h2 id="Longformer实现细节"><a href="#Longformer实现细节" class="headerlink" title="Longformer实现细节"></a>Longformer实现细节</h2><p>原始的Transformer模型attention部分的的时间与空间复杂度是$O(n^2)$，其中$n$是文本的长度。为了解决这个挑战，作者将原始的满的attention矩阵稀疏化，通过一种定义好的“注意力模式（Attention pattern）”，指定输入中哪些位置的token相互关注（attend）。下面介绍具体的注意力模式有哪些。</p>
+<p><strong>滑动窗口</strong></p>
+<p>由于局部的上下文是非常重要的，因此注意力模式在每个token附近使用了固定大小的attention window，然后使用多层这样的模型，就能获得非常大的感知野。其中最顶层能感受到句子的所有位置，并且有能力输出包含句子所有位置信息的整个句子的表示，就像CNN一样。</p>
+<p>将窗口的大小固定为$w$，每个token能够attend自己两边$\frac{1}{2}w$个token，其计算复杂度就是$O(n\times w)$。由于$w$远小于$n$，因此复杂度是与句子长度$n$呈线性关系的。在一个具有 $l$ 层的transformer模型中，最顶层的感受野大小是 $l\times w$（假设每一层的$w$是固定的）。根据不同的应用场景，在每一层使用不同大小的$w$可能有助于平衡模型的效率和表示能力，若$w$越大，则每个token需要attend的数量越大，表示能力也越强，但计算复杂度也变大，反之亦然。</p>
+<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221134942417.png" srcset="/img/loading.gif" lazyload alt="每一层窗口的视野"></p>
+<p><strong>膨胀的滑动窗口</strong></p>
+<p>为了进一步扩大感受野但不增加计算量，滑动窗口能被”膨胀“。这与膨胀的CNN非常类似，使窗口有一个大小为 $d$ 的膨胀间隔，也就是相当于将原本的连续的窗口，中间增加间隔。假设每一层的$w$和$d$是固定的，那么感受野的大小就膨胀成了$l \times d \times w$，这样就能让视野扩大到上万个token，即使 $d$ 是个很小的值。</p>
+<p><strong>全局Attention</strong></p>
+<p>在本方法中，滑动窗口和膨胀的attention机制对于学习特定任务的表示还不够灵活。因此，作者在输入的某些预先选定的位置添加了全局attention。重要的是，这些全局的attention是对称的，也就是说：全局attention位置的token会attend句子中的所有token，反过来，句子中的所有token都会attend那些具有全局attention特性的token。</p>
+<p>例如，对于分类任务，全局attention用在了[CLS]的位置上，而对于QA任务，全局attention用在了所有的问题token上。</p>
+<p>由于这一类具有全局attention性质的token相对于$n$来说非常小，而且与$n$是不相关的，因此结合了局部attention和全局attention的复杂度还是$O(n)$。</p>
+<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221140701806.png" srcset="/img/loading.gif" lazyload alt="各种方法的attention矩阵"></p>
+<p><strong>全局Attention的线性投影</strong></p>
+<p>给定了线性投影矩阵$Q,K,V$，原始的Transformer模型计算attention分数公式为：<br>$$<br>Attention(Q,K,V)=softmax(\frac{QK^T}{\sqrt{d_k}})V<br>$$<br>在Longformer中，使用了两组投影。第一组$Q_s,K_s,V_s$用来计算滑动窗口的attention分数，第二组$Q_g,K_g,V_g$用来计算全局的attention分数。额外的的那个投影矩阵对不同类型的attention的建模提供了灵活性，并且证明了它对下游任务有着好的表现是非常关键的。$Q_g,K_g,V_g$是用与$Q_s,K_s,V_s$对应的值初始化的。</p>
+<h2 id="自回归语言模型"><a href="#自回归语言模型" class="headerlink" title="自回归语言模型"></a>自回归语言模型</h2><p>自回归，或者从左到右的的语言模型被宽泛的定义为给定前面的token/characters，预测后续一个token/characters的概率分布。这在自然语言处理中是一个最基本的任务，并且之前很多使用transformer来处理长文本的模型都靠这个任务来评估效果。本文也不例外。</p>
+<p><strong>Attention Pattern</strong></p>
+<p>在自回归语言模型中作者使用了膨胀的滑动窗口矩阵。作者在每一层都使用了不同的窗口大小。具体来说，在底层使用小的窗口大小，并且随着层数上升，增大窗口的大小。这就使得顶层的网络能学到高层的文本表示，因为底层的网络能获取到局部信息。此外，这样做还能平衡模型的效率和表现。</p>
+<p><strong>实验</strong></p>
+<p>作者实验时使用了阶梯式的训练步骤，在训练过程中慢慢增加窗口的大小和输入文本的长度。</p>
+<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221150404796.png" srcset="/img/loading.gif" lazyload alt="实验结果"></p>
+<h2 id="Longformer-Encoder-Decoder-LED"><a href="#Longformer-Encoder-Decoder-LED" class="headerlink" title="Longformer-Encoder-Decoder(LED)"></a>Longformer-Encoder-Decoder(LED)</h2><p>原始的Transformer是Encoder-Decoder结构的模型，目的是为了解决seq2seq的任务，比如摘要和翻译。然而这些模型都不能很好的接收长文本的输入。</p>
+<p>为了解决长文本的seq2seq任务，作者提出了Longformer的变体，包含了与Transformer一样的encoder,decoder结构，唯一不同的在于将原始encoder中的的full attention改为了Longformer中更高效的local+global的attention模式。decoder对encoder的全部输入和之前的decoder输出使用了full attention矩阵。</p>
+<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221151623932.png" srcset="/img/loading.gif" lazyload alt="LED效果分析"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文提出了Longformer，一种基于transformer的模型，能够处理长文本，这就使得它能更加方便的处理某些任务，不需要像原始方法一样将长文本截断，也不需要复杂的结构来结合这些截断的文本信息。</p>
+<p>Longformer使用了一种attention机制，能结合全局和局部的信息，并且能与输入的长度呈线性复杂度。Longformer在很多数据集上都取得了SOTA的效果，在WiKiHop和TriviaQA上还超过了Roberta，达到了新的SOTA。最后还提出了LED，一种Longformer的变体，能处理seq2seq任务，并且在arXiv长文本摘要任务上取得了好的效果。</p>
 
             </div>
             <hr>
@@ -298,7 +302,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/Pytorch%E7%AC%94%E8%AE%B0/">Pytorch笔记</a>
+                      <a class="hover-with-bg" href="/categories/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
                     
                   </div>
                 
@@ -306,7 +310,9 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/Pytorch/">Pytorch</a>
+                      <a class="hover-with-bg" href="/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Transformer/">Transformer</a>
                     
                   </div>
                 
@@ -323,18 +329,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">【论文阅读】Longformer：The Long-Document Transformer</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/11/30/%E5%8D%81%E4%B8%80%E6%9C%88%E8%AE%A1%E5%88%92%E5%8F%8A%E5%AE%8C%E6%88%90%E6%83%85%E5%86%B5/">
-                        <span class="hidden-mobile">十一月计划及完成情况</span>
+                      <a href="/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/">
+                        <span class="hidden-mobile">【Pytorch笔记】Pytorch之scatter函数用法</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
@@ -533,6 +533,45 @@
 
 
 
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3.1.4/es5/tex-svg.js" ></script>
+
+  
 
 
 
