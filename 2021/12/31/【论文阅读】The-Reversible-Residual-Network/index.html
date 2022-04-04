@@ -18,7 +18,7 @@
   <meta name="author" content="Bobo">
   <meta name="keywords" content="">
   
-  <title>【论文阅读】Longformer：The Long-Document Transformer - Bobo&#39;s Blog</title>
+  <title>【论文阅读】The Reversible Residual Network - Bobo&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
@@ -191,7 +191,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="【论文阅读】Longformer：The Long-Document Transformer">
+            <span class="h2" id="subtitle" title="【论文阅读】The Reversible Residual Network">
               
             </span>
 
@@ -201,8 +201,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-12-20 16:18" pubdate>
-        2021年12月20日 下午
+      <time datetime="2021-12-31 15:31" pubdate>
+        2021年12月31日 下午
       </time>
     </span>
   
@@ -213,7 +213,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.6k 字
+      3.5k 字
     </span>
   
 
@@ -223,7 +223,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      17
+      39
        分钟
     </span>
   
@@ -261,38 +261,37 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">【论文阅读】Longformer：The Long-Document Transformer</h1>
+            <h1 style="display: none">【论文阅读】The Reversible Residual Network</h1>
             
             <div class="markdown-body">
-              <p><strong><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2004.05150">原文🔗</a></strong></p>
-<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>基于Transformer的模型不能很好的处理长文本任务，原因是它的时间空间复杂度是文本长度的二次方。为了解决这个限制，作者提出了新的Transformer模型——Longformer，其复杂度是基于文本长度线性的，因此能更容易的去处理上千个Token或更长的文本。</p>
-<p>Longformer的attention机制能完全代替标准attention机制，它结合了局部滑动窗口的attention与任务驱动的全局attention。Longformer的效果在WikiHop数据集和TriviaQA数据集的效果超过了RoBERTa模型，并且达到了新的SOTA。</p>
-<p>作者还提出了基于Longformer的Encoder-Decoder模型（LED），来处理文本生成任务，并且取得了良好的效果。</p>
-<h2 id="Longformer实现细节"><a href="#Longformer实现细节" class="headerlink" title="Longformer实现细节"></a>Longformer实现细节</h2><p>原始的Transformer模型attention部分的的时间与空间复杂度是$O(n^2)$，其中$n$是文本的长度。为了解决这个挑战，作者将原始的满的attention矩阵稀疏化，通过一种定义好的“注意力模式（Attention pattern）”，指定输入中哪些位置的token相互关注（attend）。下面介绍具体的注意力模式有哪些。</p>
-<p><strong>滑动窗口</strong></p>
-<p>由于局部的上下文是非常重要的，因此注意力模式在每个token附近使用了固定大小的attention window，然后使用多层这样的模型，就能获得非常大的感知野。其中最顶层能感受到句子的所有位置，并且有能力输出包含句子所有位置信息的整个句子的表示，就像CNN一样。</p>
-<p>将窗口的大小固定为$w$，每个token能够attend自己两边$\frac{1}{2}w$个token，其计算复杂度就是$O(n\times w)$。由于$w$远小于$n$，因此复杂度是与句子长度$n$呈线性关系的。在一个具有 $l$ 层的transformer模型中，最顶层的感受野大小是 $l\times w$（假设每一层的$w$是固定的）。根据不同的应用场景，在每一层使用不同大小的$w$可能有助于平衡模型的效率和表示能力，若$w$越大，则每个token需要attend的数量越大，表示能力也越强，但计算复杂度也变大，反之亦然。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221134942417.png" srcset="/img/loading.gif" lazyload alt="每一层窗口的视野"></p>
-<p><strong>膨胀的滑动窗口</strong></p>
-<p>为了进一步扩大感受野但不增加计算量，滑动窗口能被”膨胀“。这与膨胀的CNN非常类似，使窗口有一个大小为 $d$ 的膨胀间隔，也就是相当于将原本的连续的窗口，中间增加间隔。假设每一层的$w$和$d$是固定的，那么感受野的大小就膨胀成了$l \times d \times w$，这样就能让视野扩大到上万个token，即使 $d$ 是个很小的值。</p>
-<p><strong>全局Attention</strong></p>
-<p>在本方法中，滑动窗口和膨胀的attention机制对于学习特定任务的表示还不够灵活。因此，作者在输入的某些预先选定的位置添加了全局attention。重要的是，这些全局的attention是对称的，也就是说：全局attention位置的token会attend句子中的所有token，反过来，句子中的所有token都会attend那些具有全局attention特性的token。</p>
-<p>例如，对于分类任务，全局attention用在了[CLS]的位置上，而对于QA任务，全局attention用在了所有的问题token上。</p>
-<p>由于这一类具有全局attention性质的token相对于$n$来说非常小，而且与$n$是不相关的，因此结合了局部attention和全局attention的复杂度还是$O(n)$。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221140701806.png" srcset="/img/loading.gif" lazyload alt="各种方法的attention矩阵"></p>
-<p><strong>全局Attention的线性投影</strong></p>
-<p>给定了线性投影矩阵$Q,K,V$，原始的Transformer模型计算attention分数公式为：<br>$$<br>Attention(Q,K,V)=softmax(\frac{QK^T}{\sqrt{d_k}})V<br>$$<br>在Longformer中，使用了两组投影。第一组$Q_s,K_s,V_s$用来计算滑动窗口的attention分数，第二组$Q_g,K_g,V_g$用来计算全局的attention分数。额外的的那个投影矩阵对不同类型的attention的建模提供了灵活性，并且证明了它对下游任务有着好的表现是非常关键的。$Q_g,K_g,V_g$是用与$Q_s,K_s,V_s$对应的值初始化的。</p>
-<h2 id="自回归语言模型"><a href="#自回归语言模型" class="headerlink" title="自回归语言模型"></a>自回归语言模型</h2><p>自回归，或者从左到右的的语言模型被宽泛的定义为给定前面的token/characters，预测后续一个token/characters的概率分布。这在自然语言处理中是一个最基本的任务，并且之前很多使用transformer来处理长文本的模型都靠这个任务来评估效果。本文也不例外。</p>
-<p><strong>Attention Pattern</strong></p>
-<p>在自回归语言模型中作者使用了膨胀的滑动窗口矩阵。作者在每一层都使用了不同的窗口大小。具体来说，在底层使用小的窗口大小，并且随着层数上升，增大窗口的大小。这就使得顶层的网络能学到高层的文本表示，因为底层的网络能获取到局部信息。此外，这样做还能平衡模型的效率和表现。</p>
-<p><strong>实验</strong></p>
-<p>作者实验时使用了阶梯式的训练步骤，在训练过程中慢慢增加窗口的大小和输入文本的长度。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221150404796.png" srcset="/img/loading.gif" lazyload alt="实验结果"></p>
-<h2 id="Longformer-Encoder-Decoder-LED"><a href="#Longformer-Encoder-Decoder-LED" class="headerlink" title="Longformer-Encoder-Decoder(LED)"></a>Longformer-Encoder-Decoder(LED)</h2><p>原始的Transformer是Encoder-Decoder结构的模型，目的是为了解决seq2seq的任务，比如摘要和翻译。然而这些模型都不能很好的接收长文本的输入。</p>
-<p>为了解决长文本的seq2seq任务，作者提出了Longformer的变体，包含了与Transformer一样的encoder,decoder结构，唯一不同的在于将原始encoder中的的full attention改为了Longformer中更高效的local+global的attention模式。decoder对encoder的全部输入和之前的decoder输出使用了full attention矩阵。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221151623932.png" srcset="/img/loading.gif" lazyload alt="LED效果分析"></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文提出了Longformer，一种基于transformer的模型，能够处理长文本，这就使得它能更加方便的处理某些任务，不需要像原始方法一样将长文本截断，也不需要复杂的结构来结合这些截断的文本信息。</p>
-<p>Longformer使用了一种attention机制，能结合全局和局部的信息，并且能与输入的长度呈线性复杂度。Longformer在很多数据集上都取得了SOTA的效果，在WiKiHop和TriviaQA上还超过了Roberta，达到了新的SOTA。最后还提出了LED，一种Longformer的变体，能处理seq2seq任务，并且在arXiv长文本摘要任务上取得了好的效果。</p>
+              <p><strong><a target="_blank" rel="noopener" href="https://proceedings.neurips.cc/paper/2017/file/f9be311e65d81a9ad8150a60844bb94c-Paper.pdf">原文🔗</a></strong></p>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>深度残差神经网络推动了图像分类任务的SOTA，并且让又深又宽的网络性能变得更好了。然而内存消耗变成了网络的瓶颈，因为模型需要保存所有的激活单元，以便反向传播时计算梯度。本文提出了<strong>Reversible Residual Network（RevNet）</strong>,ResNets的一种变体，能将每一层的激活单元通过后面的层构造出来。因此，每一层的绝大多数激活单元都不用存储在内存中，在反向传播的时候可以直接构造出来。本文在多个数据集（CIFAR-10,CIFAR0100,ImageNet）上证明了该方法的分类准确率与同等大小的ResNets是一样的，尽管该方法所需要的用来存储激活单元的内存大小与网络的深度是无关的。</p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>在过去的几年中，深度卷积网络在多种视觉任务中都取得了快速的进展。对于大部分任务而言，SOTA的网络变得越来越深。比如，深度残差网络的结构在多个视觉领域都取得了SOTA的结果。其结构的关键是残差块（residual block），它使得网络能直接传递信息，并且让反向传播不会出现梯度消失或梯度爆炸。这也使得我们能够训练上百层的网络，而这增加的深度取得了非常好的效果。</p>
+<p>几乎现代的所有神经网络都是用反向传播法训练的。由于反向传播需要存储网络的激活单元，因此它占用的内存是与网络层数成正比的。<strong>然而，这就意味着随着网络变得越来越深，越来越宽，存储其中的激活单元将会占用非常多的内存</strong>，这也就导致了内存成为许多应用的瓶颈。<strong>减少激活单元占用的内存将会大大提高我们训练更深更宽的网络的能力</strong>。</p>
+<p>本文提出了一种<strong>可逆的残差网络（Reversible Residual Networks，RevNets）</strong>，ResNets的一种<strong>可逆</strong>的变体，可逆的含义是，每一层的激活单元能通过之后的可逆层计算出来，这就使得我们不用存储每一层的激活单元在内存中，在方向传播的时候直接计算该位置的激活单元就行。当然，除了少量的不可逆的层需要保存在内存中，不能计算出来。这样设计的结果就是网络需要存储的激活单元的内存大小，是与网络的深度无关的，这通常也直接导致与传统的ResNets相比，网络的大小减少几个数量级。更令人惊讶的是，在作者的实验当中，这样做并没有导致明显的性能下降，几乎与原始的ResNets的效果是一模一样的。</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><h3 id="1-反向传播"><a href="#1-反向传播" class="headerlink" title="1.反向传播"></a>1.反向传播</h3><p>反向传播是计算网络中参数对于损失函数的梯度的经典方法。它几乎被应用于所有的神经网络算法，并且对于具有自动微分功能的神经网络框架来说，它是一个理所应当的存在。由于为了实现节约内存，我们需要手动实现一部分的反向传播，因此先简要介绍回顾一下反向传播。</p>
+<p>我们认为反向传播是一种反向自动求微分的方法。令$v_1,v_2,…v_K$代表网络计算图$\mathcal{G}$中的拓扑顺序的节点，其中$v_k$代表最后的损失函数$\mathcal{C}$。每一个节点代表的是计算图中的一个函数$f_i$。反向传播会计算每个节点的<strong>总梯度</strong>$d\mathcal{C}/dv_i$，总梯度表示的是某个节点$v_i$微小的变化对于$\mathcal{C}$的影响，可以想象成导数的定义$\lim\limits_{\Delta x\to\infty}\frac{f(x+\Delta x) - f(x)}{\Delta x}$，“总”的意思就是要考虑对$v_i$的所有非直接影响，通过它之后的一系列节点$v_k$，通俗一点就是说，对于节点$v_i$的梯度，需要将后续节点对其产生的梯度全部加起来。为了避免表示混乱，后续使用$\overline{v_i}=d\mathcal{C}/dv_i$来表示对$v_i$的总梯度。</p>
+<p>反向传播在计算图上以逆拓扑的顺序进行迭代计算。对于每个节点$v_i$，运用如下的求导法则：<br>$$<br>\overline{v_i}=\sum\limits_{j\in \text{Child(i)}}(\frac{\partial f_j}{\partial v_i})^T \overline{v_j}, \tag{1}<br>$$<br>其中$\text{Child}(i)$表示$v_i$的子节点，$\partial f_j/\partial v_i$代表了表达式$f_j$对节点$v_i$的雅可比矩阵。上式其实就是简单的链式求导法则，求和代表的就是总梯度，也就是某个节点所有子节点对该节点的偏导数和，我来详细解释一下求和符号内的，对于该节点的导数为何是这样的形式。</p>
+<p>高等数学中我们学的求导都是对一个标量进行求导，也就是自变量是一个数，而不是一个向量。而在深度学习中，我们知道输入模型的$x$通常都是一个向量，非常高维度的向量，经过一个函数之后，输出的$y$也是一个向量，与$x$的维度一致，比如一个简单的线性函数$y=wx+b$，参数为$w,b$，输出输出都是一个向量，这时如果求$y$对$x$的导数，我们得到的就不是一个简单的$dy/dx$了，我们得到的是一个雅可比矩阵：<br>$$<br>\frac{\partial y}{\partial x}^T=<br>\begin{pmatrix}<br>\frac{\partial y_1}{\partial x_1} &amp; \frac{\partial y_1}{\partial x_2} &amp; \cdots &amp; \frac{\partial y_1}{\partial x_n}\<br>\frac{\partial y_2}{\partial x_1} &amp; \frac{\partial y_2}{\partial x_2} &amp; \cdots &amp; \frac{\partial y_2}{\partial x_n}\<br>\vdots &amp; \vdots &amp; \ddots &amp; \frac{\partial y_1}{\partial x_1}\<br>\frac{\partial y_n}{\partial x_1} &amp; \frac{\partial y_n}{\partial x_2} &amp; \cdots &amp; \frac{\partial y_n}{\partial x_n}\<br>\end{pmatrix}^T<br>$$<br>其中的$n$就是向量的维度。我们将$x$当作求导函数中的$v_i$，将$y$当作它的其中一个子节点$v_j$，整个表达式$y=wx+b$为两个节点之间的函数$f_j$，那么根据链式求导法则，$\overline{x} = \overline{y}\frac{dy}{dx}$，相当于上面求和符号中的某一项，这样看来是不是就非常清晰了，$\overline{y}$相当于$\overline{v_j}$。$\overline{y}$的形式就是：<br>$$<br>\overline{y}=<br>\begin{pmatrix}<br>dy_1\dy_2\\vdots\dy_n<br>\end{pmatrix}<br>$$<br>将上述两个矩阵相乘就能得到$\overline{x}$了。</p>
+<h3 id="2-深度残差网络"><a href="#2-深度残差网络" class="headerlink" title="2.深度残差网络"></a>2.深度残差网络</h3><p>ResNets是由残差块组成的，具有下面的形式：<br>$$<br>y=x+\mathcal{F}(x)，\tag{2}<br>$$<br>其中$\mathcal{F}$，残差函数，通常是一个很浅的神经网络。ResNets能很好的解决梯度消失和梯度爆炸问题。由下图所示，分类问题的残差函数是由归一化层（BN），修正线性激活函数层（ReLU）与卷积层堆叠成的（C1代表$1\times 1$的卷积核，C3代表$3\times 3$的卷积核）。</p>
+<p><img src="/2021/12/31/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91The-Reversible-Residual-Network/image-20220103003447551.png" srcset="/img/loading.gif" lazyload alt="残差网络结构示意图"></p>
+<p>根据ResNets原文说明，我们有两种残差块的结构：基本的残差函数如上图右上部分，具有瓶颈的残差函数如上图的右下部分。何为具有瓶颈结构的卷积层呢？我们知道，一个普通的$3\times 3$卷积层会先将图像进行padding，然后进行卷积，以保证卷积前后图像的大小是不变的。而具有瓶颈结构的残差层，先使用$1\times 1$的卷积核，将图像缩小到某个大小，然后通过普通的$3\times 3$卷积核进行卷积，最后再使用一个$1\times 1$卷积核将图像放大到指定的大小，这样看起来就像是一个瓶颈一样，先大后小再大。上述操作可以通过下面的式子进行表示。<br>$$<br>a(x)=\text{ReLU(BN(}x\text{))}\<br>c_k(x)=Conv_{k\times k}(a(x))\<br>\<br>Basic(x)=c_3(c_3(x))\<br>Bottleneck(x)=c_1(c_3(c_1(x)))\tag{3}<br>$$</p>
+<h3 id="3-可逆结构"><a href="#3-可逆结构" class="headerlink" title="3.可逆结构"></a>3.可逆结构</h3><p>我们先介绍可逆的残差块。可逆的残差网络是由一系列可逆块组成，可逆块的概念类比ResNets的残差块。可逆块的定义如下：<br>$$<br>y_1=x_1\<br>y_2=x_2+\mathcal{F}(x_1)\tag{4}\label{eq4}<br>$$<br>其中$x_1,x_2$是每一层输入的拆分，具体怎么拆分需要看使用的是什么方法，是卷积还是普通的全连接网络。</p>
+<p>然而由于上式具有某些性质，不能表达所有的函数，经过改进后的表达式变成了：<br>$$<br>y_1=x_1\<br>y_2=x_2\odot exp(\mathcal{F}(x_1)) + \mathcal{G}(x_1)\tag{5}<br>$$<br>其中，$\odot$表示的是哈达玛积或者说是点积，也就是每个位置相乘。</p>
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><p>下面我们正式介绍可逆残差网络。可逆残差网络就是残差网络的一种变体，能通过后面的层计算当前层的激活单元。我们将要讨论如何在线重构激活单元，以减少存储激活单元需要的内存。</p>
+<h3 id="1-可逆残差网络"><a href="#1-可逆残差网络" class="headerlink" title="1.可逆残差网络"></a>1.可逆残差网络</h3><p>可逆残差网络是由一系列的可逆残差块组成，我们下面给出定义。我们必须将每一层的单元分割成两部分，分别表示为$x_1,x_2$；在本文的剩余部分，我们假设这是通过分割通道来完成的，也就是说如果有32个通道，那么分一半当作$x_1$，另一半当作$x_2$，至于为什么这么做呢？因为作者发现这样做效果非常好…</p>
+<p>每一个可逆块都接受一对输入$(x_1,x_2)$并且产生一对输出$(y_1,y_2)$，根据公式$\eqref{eq4}$定义的成对加法规则得到的启发，我们定义如下结构：<br>$$<br>y_1=x_1+\mathcal{F}(x_2)\<br>y_2=x_2+\mathcal{G}(y_1)\tag{6}<br>$$<br>其中函数$\mathcal{F,G}$类似于残差结构中的函数，可以自己定义。</p>
+<p>那么，每一层的激活单元可以通过以下式子进行重构：<br>$$<br>x_2=y_2-\mathcal{G}(y_1)\<br>x_1=y_1-\mathcal{F}(x_2)\tag{7}<br>$$<br>需要注意的是，不像残差块，可逆块的卷积步长必须为1，否则会丢失信息，从而导致网络变得不可逆。标准的网络层通常只有少量网络层具有大的步长。如果我们要定义类似于ResNet的结构，那么我们必须显式存储不可逆的网络层。</p>
+<p><img src="/2021/12/31/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91The-Reversible-Residual-Network/image-20220103112919345.png" srcset="/img/loading.gif" lazyload alt="前向传播与方向传播流程"></p>
+<h3 id="2-不存储激活单元的反向传播"><a href="#2-不存储激活单元的反向传播" class="headerlink" title="2.不存储激活单元的反向传播"></a>2.不存储激活单元的反向传播</h3><p>为了深入理解反向传播的程序，我们可以重写一下前向和反向的计算公式，如下：<br>$$<br>forward:z_1=x_1+\mathcal{F}(x_2)\quad y_2=x_2+\mathcal{G}(z_1)\quad y_1=z_1\\<br>backward:z_1=y_1\quad x_2=y_2-\mathcal{G}(z_1)\quad x_1=z_1-\mathcal{F}(x_2)\tag{8}<br>$$<br>尽管$z_1=y_1$，但两个变量表示计算图中的不同的节点，因此它们两个的总梯度$\overline{z_1},\overline{y_1}$是不一样的。因为$\overline{z_1}$还受到了$y_2$的间接影响，而$\overline{y_1}$则不然。在反向传播的过程中，我们有的是激活单元$(y_1,y_2)$和它们的总梯度$(\overline{y_1},\overline{y_2})$，我们希望求出来的是该单元的输入$(x_1, x_2)$以及它们的总梯度$\overline{x_1}, \overline{x_2}$，以及函数$\mathcal{F,G}$的参数的总梯度。再结合公式(8)，我们就能得到反向传播的更新过程：</p>
+<p><img src="/2021/12/31/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91The-Reversible-Residual-Network/image-20220103112745581.png" srcset="/img/loading.gif" lazyload alt="可逆残差块反向传播更新步骤"></p>
+<p>怎么理解这个步骤呢？下面我画一张图来帮助理解这个更新步骤。公式的2~4步就不用解释了，就是直接反向求$x$的赋值操作。我们主要解释一下梯度的计算步骤。</p>
+<p><img src="/2021/12/31/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91The-Reversible-Residual-Network/RevNet-(1).1dietdx41x0g.webp" srcset="/img/loading.gif" lazyload alt="反向传播流程图"></p>
+<p>上图中黑色的箭头表示的前线传播，紫色箭头表示反向传播。可以看到$z_1$有两个指出的箭头，一个指向$y_1$，一个指向$\mathcal{G}$，那么反向传播的时候，这两个箭头将会反着对$z_1$产生梯度，我们求的是总梯度，因此需要将两部分梯度相加，得到总梯度。由公式的第5行可以看出来就是这两部分的梯度相加，赋值给$\overline{z_1}$，$\frac{\partial y_2}{\partial z_1}=\overline{y2}\frac{\partial g}{\partial z_1}$，这个公式就是这样得到的。$x_1$的总梯度通过上图也能很好的理解，就由读者自己推一下就行了。</p>
+<p>通过重复执行上述的算法，我们就能在只有$y$和$\overline{y}$的情况下执行反向传播。但总的来说，在一个残差网络里并不是所有层都可逆的，比如下采样层就不可逆，这时候我们需要显示的将激活单元存储在内存中了。但是残差网络通常都包含大量的残差层和少量的下采样层，如果我们模仿经典的残差神经网络来设计结构的话，那少量的下采样层就可以不用在乎了，因为它与网络的深度是无关的。</p>
+<h3 id="3-关于计算量的问题"><a href="#3-关于计算量的问题" class="headerlink" title="3.关于计算量的问题"></a>3.关于计算量的问题</h3><p>众所周知，鱼和熊掌不可兼得。本方法在节约了内存的同时，一定是会增加计算量的。一般来说，对于一个具有N层的网络，前向传播和方向传播大约分别会进行N次和2N次加乘操作。对于RevNet而言，在方向传播的过程中，残差层的激活单元每次都需要被重新计算一次，因此，RevNet的方向传播大约会进行4N次操作，或者说比普通的残差曾多33%。然而在实验中发现，前向传播和反向传播的开销基本上是一样的，因此在这种情况下，RevNets的计算量更接近50%。（我也不知道是怎么计算出来的）</p>
+<p><img src="/2021/12/31/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91The-Reversible-Residual-Network/image-20220103123836067.png" srcset="/img/loading.gif" lazyload alt="image-20220103123836067"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文主要介绍了RevNets，一种不用存储激活单元的神经网络结构。并且作者发现这种结构在节省内存的同时几乎对网络的性能没有影响。</p>
 
             </div>
             <hr>
@@ -312,7 +311,9 @@
                     
                       <a class="hover-with-bg" href="/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
                     
-                      <a class="hover-with-bg" href="/tags/Transformer/">Transformer</a>
+                      <a class="hover-with-bg" href="/tags/Resnet/">Resnet</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/">内存优化</a>
                     
                   </div>
                 
@@ -329,9 +330,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/12/31/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91The-Reversible-Residual-Network/">
+                      <a href="/2022/01/02/2021%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">【论文阅读】The Reversible Residual Network</span>
+                        <span class="hidden-mobile">2021年度总结</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -339,8 +340,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/">
-                        <span class="hidden-mobile">【Pytorch笔记】Pytorch之scatter函数用法</span>
+                      <a href="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/">
+                        <span class="hidden-mobile">【论文阅读】Longformer：The Long-Document Transformer</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

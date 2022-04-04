@@ -18,7 +18,7 @@
   <meta name="author" content="Bobo">
   <meta name="keywords" content="">
   
-  <title>【论文阅读】Longformer：The Long-Document Transformer - Bobo&#39;s Blog</title>
+  <title>【论文阅读】Reformer：The Efficient Transformer - Bobo&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
@@ -191,7 +191,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="【论文阅读】Longformer：The Long-Document Transformer">
+            <span class="h2" id="subtitle" title="【论文阅读】Reformer：The Efficient Transformer">
               
             </span>
 
@@ -201,8 +201,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2021-12-20 16:18" pubdate>
-        2021年12月20日 下午
+      <time datetime="2022-01-23 14:43" pubdate>
+        2022年1月23日 下午
       </time>
     </span>
   
@@ -213,7 +213,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.6k 字
+      3.3k 字
     </span>
   
 
@@ -223,7 +223,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      17
+      38
        分钟
     </span>
   
@@ -261,38 +261,42 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">【论文阅读】Longformer：The Long-Document Transformer</h1>
+            <h1 style="display: none">【论文阅读】Reformer：The Efficient Transformer</h1>
             
             <div class="markdown-body">
-              <p><strong><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2004.05150">原文🔗</a></strong></p>
-<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>基于Transformer的模型不能很好的处理长文本任务，原因是它的时间空间复杂度是文本长度的二次方。为了解决这个限制，作者提出了新的Transformer模型——Longformer，其复杂度是基于文本长度线性的，因此能更容易的去处理上千个Token或更长的文本。</p>
-<p>Longformer的attention机制能完全代替标准attention机制，它结合了局部滑动窗口的attention与任务驱动的全局attention。Longformer的效果在WikiHop数据集和TriviaQA数据集的效果超过了RoBERTa模型，并且达到了新的SOTA。</p>
-<p>作者还提出了基于Longformer的Encoder-Decoder模型（LED），来处理文本生成任务，并且取得了良好的效果。</p>
-<h2 id="Longformer实现细节"><a href="#Longformer实现细节" class="headerlink" title="Longformer实现细节"></a>Longformer实现细节</h2><p>原始的Transformer模型attention部分的的时间与空间复杂度是$O(n^2)$，其中$n$是文本的长度。为了解决这个挑战，作者将原始的满的attention矩阵稀疏化，通过一种定义好的“注意力模式（Attention pattern）”，指定输入中哪些位置的token相互关注（attend）。下面介绍具体的注意力模式有哪些。</p>
-<p><strong>滑动窗口</strong></p>
-<p>由于局部的上下文是非常重要的，因此注意力模式在每个token附近使用了固定大小的attention window，然后使用多层这样的模型，就能获得非常大的感知野。其中最顶层能感受到句子的所有位置，并且有能力输出包含句子所有位置信息的整个句子的表示，就像CNN一样。</p>
-<p>将窗口的大小固定为$w$，每个token能够attend自己两边$\frac{1}{2}w$个token，其计算复杂度就是$O(n\times w)$。由于$w$远小于$n$，因此复杂度是与句子长度$n$呈线性关系的。在一个具有 $l$ 层的transformer模型中，最顶层的感受野大小是 $l\times w$（假设每一层的$w$是固定的）。根据不同的应用场景，在每一层使用不同大小的$w$可能有助于平衡模型的效率和表示能力，若$w$越大，则每个token需要attend的数量越大，表示能力也越强，但计算复杂度也变大，反之亦然。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221134942417.png" srcset="/img/loading.gif" lazyload alt="每一层窗口的视野"></p>
-<p><strong>膨胀的滑动窗口</strong></p>
-<p>为了进一步扩大感受野但不增加计算量，滑动窗口能被”膨胀“。这与膨胀的CNN非常类似，使窗口有一个大小为 $d$ 的膨胀间隔，也就是相当于将原本的连续的窗口，中间增加间隔。假设每一层的$w$和$d$是固定的，那么感受野的大小就膨胀成了$l \times d \times w$，这样就能让视野扩大到上万个token，即使 $d$ 是个很小的值。</p>
-<p><strong>全局Attention</strong></p>
-<p>在本方法中，滑动窗口和膨胀的attention机制对于学习特定任务的表示还不够灵活。因此，作者在输入的某些预先选定的位置添加了全局attention。重要的是，这些全局的attention是对称的，也就是说：全局attention位置的token会attend句子中的所有token，反过来，句子中的所有token都会attend那些具有全局attention特性的token。</p>
-<p>例如，对于分类任务，全局attention用在了[CLS]的位置上，而对于QA任务，全局attention用在了所有的问题token上。</p>
-<p>由于这一类具有全局attention性质的token相对于$n$来说非常小，而且与$n$是不相关的，因此结合了局部attention和全局attention的复杂度还是$O(n)$。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221140701806.png" srcset="/img/loading.gif" lazyload alt="各种方法的attention矩阵"></p>
-<p><strong>全局Attention的线性投影</strong></p>
-<p>给定了线性投影矩阵$Q,K,V$，原始的Transformer模型计算attention分数公式为：<br>$$<br>Attention(Q,K,V)=softmax(\frac{QK^T}{\sqrt{d_k}})V<br>$$<br>在Longformer中，使用了两组投影。第一组$Q_s,K_s,V_s$用来计算滑动窗口的attention分数，第二组$Q_g,K_g,V_g$用来计算全局的attention分数。额外的的那个投影矩阵对不同类型的attention的建模提供了灵活性，并且证明了它对下游任务有着好的表现是非常关键的。$Q_g,K_g,V_g$是用与$Q_s,K_s,V_s$对应的值初始化的。</p>
-<h2 id="自回归语言模型"><a href="#自回归语言模型" class="headerlink" title="自回归语言模型"></a>自回归语言模型</h2><p>自回归，或者从左到右的的语言模型被宽泛的定义为给定前面的token/characters，预测后续一个token/characters的概率分布。这在自然语言处理中是一个最基本的任务，并且之前很多使用transformer来处理长文本的模型都靠这个任务来评估效果。本文也不例外。</p>
-<p><strong>Attention Pattern</strong></p>
-<p>在自回归语言模型中作者使用了膨胀的滑动窗口矩阵。作者在每一层都使用了不同的窗口大小。具体来说，在底层使用小的窗口大小，并且随着层数上升，增大窗口的大小。这就使得顶层的网络能学到高层的文本表示，因为底层的网络能获取到局部信息。此外，这样做还能平衡模型的效率和表现。</p>
-<p><strong>实验</strong></p>
-<p>作者实验时使用了阶梯式的训练步骤，在训练过程中慢慢增加窗口的大小和输入文本的长度。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221150404796.png" srcset="/img/loading.gif" lazyload alt="实验结果"></p>
-<h2 id="Longformer-Encoder-Decoder-LED"><a href="#Longformer-Encoder-Decoder-LED" class="headerlink" title="Longformer-Encoder-Decoder(LED)"></a>Longformer-Encoder-Decoder(LED)</h2><p>原始的Transformer是Encoder-Decoder结构的模型，目的是为了解决seq2seq的任务，比如摘要和翻译。然而这些模型都不能很好的接收长文本的输入。</p>
-<p>为了解决长文本的seq2seq任务，作者提出了Longformer的变体，包含了与Transformer一样的encoder,decoder结构，唯一不同的在于将原始encoder中的的full attention改为了Longformer中更高效的local+global的attention模式。decoder对encoder的全部输入和之前的decoder输出使用了full attention矩阵。</p>
-<p><img src="/2021/12/20/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Longformer%EF%BC%9AThe-Long-Document-Transformer/image-20211221151623932.png" srcset="/img/loading.gif" lazyload alt="LED效果分析"></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文提出了Longformer，一种基于transformer的模型，能够处理长文本，这就使得它能更加方便的处理某些任务，不需要像原始方法一样将长文本截断，也不需要复杂的结构来结合这些截断的文本信息。</p>
-<p>Longformer使用了一种attention机制，能结合全局和局部的信息，并且能与输入的长度呈线性复杂度。Longformer在很多数据集上都取得了SOTA的效果，在WiKiHop和TriviaQA上还超过了Roberta，达到了新的SOTA。最后还提出了LED，一种Longformer的变体，能处理seq2seq任务，并且在arXiv长文本摘要任务上取得了好的效果。</p>
+              <p><strong><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=rkgNKkHtvB">原文🔗</a></strong></p>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>Transformer模型在许多任务上都取得了SOTA的结果，然而训练这些模型通常都需要非常大的开销，特别是对于长文本模型。本文介绍了两种让Transformer模型更加高效的方法。第一，将点积的attention机制用局部敏感哈希来替代（LSH），这让时间复杂度从$O(L^2)$降到了$O(LlogL)$，其中$L$是文本的长度。第二，使用可逆的残差网络代替标准的残差层，这样能只保存一次激活单元，而非一般的N次，其中N为网络的层数。最终得到了模型Reformer，与普通的Transformer模型效果不相上下，但内存开销更小，并且更快。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>为了解决普通的Transformer内存开销大，时间复杂度高的问题，本文运用了下列技术：</p>
+<ul>
+<li>可逆层（上一篇论文笔记介绍），能够只存储一层的激活单元</li>
+<li>将前馈层的激活单元拆分开来，并且分块处理它们，能降低空间复杂度</li>
+<li>基于LSH的近似attention计算将attention部分的时间复杂度从$O(L^2)$降低到了$O(L\text{log}L)$</li>
+</ul>
+<p>本文主要研究上面的三种方法，并且发现它们对模型训练时的影响几乎可以忽略不计。将激活单元拆分只影响代码实现，每一层的数据在数值上与Transformer是一样的。应用可逆残差层确实改变了模型的结构，但是在实验中发现对模型的影响也是可以忽略不计的。最后，LSH是对attention的改进，也是对模型效果影响最大的地方，桶的数目对模型效果影响很大。经过实验作者发现一组参数既能提高模型的效率，又能得到与原始Transformer模型相似的实验结果。</p>
+<h2 id="局部敏感哈希注意力机制"><a href="#局部敏感哈希注意力机制" class="headerlink" title="局部敏感哈希注意力机制"></a>局部敏感哈希注意力机制</h2><p>再让我们先回顾一下标准的attention计算过程。</p>
+<h3 id="点积注意力"><a href="#点积注意力" class="headerlink" title="点积注意力"></a>点积注意力</h3><p>Transformer中的标准attention是归一化的点积attention。输入包括$d_k$维的queries和keys以及$d_v$维的values。然后计算每个query与所有keys的点积，除以$\sqrt{d_k}$，然后通过一个$softmax$层，得到values的权重。在计算的时候，对于所有query的attention计算过程是同时进行的，因为可以将计算过程转化为矩阵乘法。将query打包成矩阵$Q$，keys和values矩阵打包成矩阵$K$和$V$，计算过程就是：<br>$$<br>\text{Attention}(Q, K, V) = \text{softmax}(\frac{QK^T}{\sqrt{d_k}})V\tag{1}<br>$$</p>
+<h3 id="多头注意力机制"><a href="#多头注意力机制" class="headerlink" title="多头注意力机制"></a>多头注意力机制</h3><p>Transformer并不是使用一个attention，而是使用多个attention，通过投影出$h$组不同的 queries，keys，values，得到$h$个结果，然后拼接起来再进行一次投影，得到最后的结果。</p>
+<h3 id="节约内存的注意力机制"><a href="#节约内存的注意力机制" class="headerlink" title="节约内存的注意力机制"></a>节约内存的注意力机制</h3><p>为了计算attention消耗的内存，我们将重点放在attention计算公式(1)上。假设Q，K，V有相同的大小[$batch_size,length,d_model$]</p>
+<p>。其中主要的问题在于$QK^T$，它的维度是[$batch_size,length,length$]。在实验中，作者训练了64K长度的模型，就算把batch-size设为1，在32位浮点精度的情况下$64K\times64K$的矩阵会消耗16G内存。这就会让模型变得非常不实用，难以处理长文本。但重要的是，这个$QK^T$矩阵没必要完全存储在内存中，因为可以分开计算每个query的attention值，在内存中每次只计算$\text{softmax}(\frac{q_iK^T}{\sqrt{d_k}})V$，然后反向传播需要用它来计算梯度的时候再重新算一遍就可以了。然而这样的方法并不是非常高效，但空间复杂度与文本长度成正比。</p>
+<h3 id="哈希注意力机制"><a href="#哈希注意力机制" class="headerlink" title="哈希注意力机制"></a>哈希注意力机制</h3><p>在LSH中，我们初始化两个tensor，Q=K和V，维度为$[batch_size,length,d_model]$。我们也保持了多头注意力机制并且将重点关注在公式(1)。如前文所述，最大的问题在于$QK^V$这一项的复杂度是平方的。但我们感兴趣的是softmax($QK^T$)。由于softmax的结果取决于输入元素中最大的一项，因此对于query $q_i$ 我们只需要将重点关注在K中与queries最近的keys上。例如，如果K的长度是64K，对于每个$q_i$我们只需要考虑一小部分，比如32个或64个最接近的keys，其他的keys与query点积经过softmax得到的结果几乎为0，可以不用考虑。这样就变得高效多了，然而怎么快速的在keys中找到与query最近的那几个呢？</p>
+<h3 id="局部敏感哈希"><a href="#局部敏感哈希" class="headerlink" title="局部敏感哈希"></a>局部敏感哈希</h3><p>我们先看一个LSH简单的示意图：</p>
+<p><img src="/2022/01/23/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Reformer%EF%BC%9AThe-Efficient-Transformer/image-20220124145006703.png" srcset="/img/loading.gif" lazyload alt="LSH示意图"></p>
+<p>想象一个平面上有一个圆，上面有两个点x、y，将这个平面划分为四个部分（桶）（上图中的四个颜色），然后我们随机将这个圆圈旋转一个角度$\theta_0$，x、y两个点会分别落到各自的部分。第一行三幅图中，x分别落在了0,1,2三个位置，y分别落在了3,2,0三个位置，那么在第一次和第三次旋转后，x和y是落在同一个组里，第二次旋转落在不同组里。这就是局部敏感哈希的原理，下面我们将这个原理应用在向量上。</p>
+<p>快速在高维空间找到最近的向量的问题也能通过局部敏感哈希(LSH)解决。我们定义一个哈希函数，能将向量x映射到一个哈希值h(x)，它能让相近的向量映射到相同的哈希值，而距离比较远的向量不能，这样的哈希函数就是一种局部敏感哈希。在上述问题中，我们确实就需要将相近的向量映射到相同的哈希值（桶），并且要尽量让每个桶尽量一样大。如果有了这样的一个哈希函数，我们的问题就解决了。</p>
+<p>我们通过随机投影来得到上述局部敏感哈希函数。如果我们要得到b个桶（将上图平面分为b份），那么就固定一个大小为$[d_k,b/2]$的随机矩阵$R$，这个矩阵就相当于随机转动那个圆盘的力量，但转动的是一个向量。定义公式$h(x)=argmax([xR;-xR])$，这个公式就是转动的方法，其中$[u;v]$表示两个向量连接。这个方法就是LSH，这也非常容易通过代码实现。</p>
+<h3 id="LSH注意力机制"><a href="#LSH注意力机制" class="headerlink" title="LSH注意力机制"></a>LSH注意力机制</h3><p>了解了LSH的原理，下面就介绍LSH attention。首先将普通的attention机制重写，对于每个query位置$i$：<br>$$<br>o_i=\sum\limits_{j\in\mathcal{P_i}}{\text{exp}(q_i\cdot k_j-z(i,\mathcal{P_i}))}v_j\<br>where\ \mathcal{P_i}={j:i\geq j}\tag{2}<br>$$<br>引入了标记$\mathcal{P_i}$表示位置$i$需要attend的位置，$z$表示被除数的函数（比如softmax中的归一化项）。为了更加清晰，忽略了$\sqrt{d_k}$的缩放。</p>
+<p>这个公式实际上就是公式(1)的变形，公式(1)中的softmax拆开就是<br>$$<br>o_i=\sum\limits_{j\in\mathcal{P_i}}\frac{e^{q_i\cdot k_j}}{e^{q_1\cdot k_j}+e^{q_2\cdot k_j}+\cdots+e^{q_n\cdot k_j}}v_j<br>$$<br>然后让$\text{exp}(z(i,\mathcal{P_i}))={e^{q_i\cdot k_j}}{e^{q_1\cdot k_j}+e^{q_2\cdot k_j}+\cdots+e^{q_n\cdot k_j}}$就得到了变形公式(2)。</p>
+<p>为了使代码支持batch操作，我们通常在一个大的集合$\widetilde{\mathcal{P}}={0,1,\dots,l}\supseteq{\mathcal{P_i}}$里进行attention操作，但要把不属于$\mathcal{P_i}$的元素mask掉：<br>$$<br>o_i=\sum\limits_{j\in\widetilde{\mathcal{P}}_i}\text{exp}(q_i\cdot k_j-m(j,\mathcal{P_i})-z(i,\mathcal{P_i}))v_j\<br>\text{where}\ m(j,\mathcal{P_i})=<br>\left{<br>\begin{array}{lc}<br>\infty&amp;\text{if}\ j\notin\mathcal{P_i}\<br>0&amp;\text{otherwise}<br>\end{array}<br>\right.<br>\tag{3}<br>$$<br>如果mask了，就相当于在分母上除了一个无穷大，就等于0。</p>
+<p>下面我们就能看LSH attention了，我们定义$\mathcal{P_i}$为<br>$$<br>\mathcal{P_i}={j:h(q_i)=h(k_j)}\tag{4}<br>$$<br>也就是$\mathcal{P_i}$包括所有与$i$在同一个桶里的元素。</p>
+<p>以上就是哈希attention的原理。然而如果仅仅这样操作还是会有问题的。</p>
+<p>经过上述操作后，会得到$b$个桶，一段文本的每个字的向量都会落到一个桶里，但潜在的问题是，每个桶里装的词向量数目是不均匀的，有的桶里多一些有的桶里少一些，甚至有可能某个桶里一个词向量都没有，这就让算法进行batch操作变得困难。为了解决这个问题，作者首先保证$h(k_j)=h(q_j)$，也就是让每个词向量的query和key一定落在同一个桶中，通过设置$k_j=\frac{q_j}{\Vert q_j\Vert}$（之前好像说了将query和key设成一样，不知道这里为什么又这样设，实际上后面的query和key是一样的）。然后将query按桶的序号进行排序，同一个桶内的query向量按照该词在句子中的位置进行排序。这样就定义了一种序号映射，$i\mapsto s_i$，$i$表示词在序列中的位置序号，$s_i$表示排序后词所在的位置序号。将attention矩阵也经过这样排序后，在同一个桶内的词都会聚集在attention矩阵的对角线上，并且是连续的。然后我们就能进行batch操作了，定义一个长度$m$，我们将排序后的query序列进行分块，每一块的长度就是$m$。然后根据之前的定义，定义每个$q_i$对应的<br>$$<br>\widetilde{\mathcal{P}}<em>i={ j:\lfloor \frac{s_i}{m}\rfloor - 1\ \le \lfloor\frac{s_j}{m}\rfloor \le \lfloor \frac{s_i}{m} \rfloor }\tag{5}<br>$$<br>这个$\widetilde{\mathcal{P}}<em>i$表示的是位置i的词能attention to的所有词的集合，其中可能包含了不能attend to的词，需要用mask给去掉。这样一来对于所有的输入向量，我们都能用相同的代码计算attention矩阵了，每个输入向量不同的地方就是mask不同。在实验中，作者设置$m=\frac{2l}{n</em>{buckets}}$，每个桶的平均大小为$l/n</em>{buckets}$，设置m为其两倍，也就相当于左右各分一半，这里作者假设每个桶大小达到平均大小两倍的概率非常小。下图就是LSH attention的全过程。</p>
+<p><img src="/2022/01/23/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Reformer%EF%BC%9AThe-Efficient-Transformer/image-20220124174413183.png" srcset="/img/loading.gif" lazyload alt="LSH attention过程与attention矩阵"></p>
+<p>首先看左图，第一行是未排序的query=key，然后将每个位置的key分配到一个桶中，每个桶用不同颜色表示。分配完之后先通过桶序号进行排序，得到第三行的结果。然后将这段序列进行分块，每块大小为$m$。最后进行在$\widetilde{\mathcal{P}}_i$内进行attention操作。</p>
+<p>接着是右图，我们看到a图是标准的attention矩阵，非常稀疏但是没有好好利用这些稀疏。b图是经过桶操作并且排序后的结果。c图让Q=K。d图进行分块操作。</p>
+<h3 id="多轮LSH注意力"><a href="#多轮LSH注意力" class="headerlink" title="多轮LSH注意力"></a>多轮LSH注意力</h3><p>由于hash操作是随机的，难免会出现错误情况，但出错的概率能通过多次hash操作减小。假设我们进行$n_{rounds}$轮不同的hash操作${h^{1},h^{2},h^{3},\dots,h^{n_{rounds}} }$，那么最能得到：<br>$$<br>\widetilde{\mathcal{P}}<em>i=\mathop{\cup}\limits</em>{r=1}^{n_{rounds}}\mathcal{P}_i^{(r)}\<br>\text{where} \ \mathcal{P}^{(r)}={ j:h^{(r)}(q_i)=h^{(r)}(q_j) }\tag{6}<br>$$</p>
+<h2 id="可逆Transformer"><a href="#可逆Transformer" class="headerlink" title="可逆Transformer"></a>可逆Transformer</h2><p>上面的内容解决了Transformer模型的注意力机制复杂度高问题，这里的方法会进一步节省模型的内存消耗。可逆残差网络在上一篇笔记中已经介绍过了。实际上我是为了读懂这里的方法才去看那篇论文的，于是先写了那篇论文笔记作为铺垫。如果没看的话可以先看上一篇论文方法再来继续看这。我就不再解释一遍revnet的方法了，这里实际就直接将revnet的思想运用到了Transformer模型的残差结构中。我将公式再贴一遍，前向传播：<br>$$<br>y_1=x_1+\mathcal{F}(x_2)\<br>y_2=x_2+\mathcal{G}(y_1)\tag{7}<br>$$<br>反向传播：<br>$$<br>x_2=y_2-\mathcal{G}(y_1)\<br>x_1=y_1-\mathcal{F}(x_2)\tag{8}<br>$$<br>将$\mathcal{F}$换成$\text{Attention}$，$\mathcal{G}$换成$\text{FeedForward}$就得到了可逆的Transformer，作者将归一化层放到了残差结构中去，也就是$\mathcal{F,G}$中。</p>
+<h2 id="分块"><a href="#分块" class="headerlink" title="分块"></a>分块</h2><p>由于前馈网络的每个激活单元是互不影响的，因此将输入的序列分块计算，计算完成后再合起来。假设我们将序列分成了$c$块，那么输出为：<br>$$<br>Y_2=[Y_2^{(1)};\dots;Y_2^{(c)}]=[X_2^{(1)}+\text{FeedForward}(Y_1^{(1)});\dots;X_2^{(c)}+\text{FeedForward}(Y_1^{(c)})]\tag{9}<br>$$<br>事实上我感觉这对模型还是有修改的，因为这样就相当于每块共用了前馈层的参数，原始的Transformer每一块的参数是不同的，能表示更多信息，这样做就有信息损失了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这篇论文结合了Transformer的信息表示优点与RevNet的节省内存的优点以及LSH方法的速度优点，诞生了Reformer。</p>
 
             </div>
             <hr>
@@ -329,18 +333,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/12/31/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91The-Reversible-Residual-Network/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">【论文阅读】The Reversible Residual Network</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/12/18/%E3%80%90Pytorch%E7%AC%94%E8%AE%B0%E3%80%91Pytorch%E4%B9%8Bscatter%E5%87%BD%E6%95%B0%E7%94%A8%E6%B3%95/">
-                        <span class="hidden-mobile">【Pytorch笔记】Pytorch之scatter函数用法</span>
+                      <a href="/2022/01/02/2021%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/">
+                        <span class="hidden-mobile">2021年度总结</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
