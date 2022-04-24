@@ -213,7 +213,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.2k 字
+      1.3k 字
     </span>
   
 
@@ -265,26 +265,37 @@
             
             <div class="markdown-body">
               <p>Pytorch中的函数后加上“_”表示在原始tensor的基础上操作，改变原始tensor，若是torch.的函数，则不会改变原始tensor，而是会生成一个新的tensor，因此<code>torch.scatter()</code>和<code>tensor.scatter_()</code>函数的区别就在于是否改变原tensor。下面我们就通过<code>scatter_()</code>函数来介绍该函数作用。</p>
-<p><code>Tensor.scatter_</code>(<em><code>dim</code></em>, <em><code>index</code></em>, <em><code>src</code></em>, <em><code>reduce=None</code></em>) → <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor">Tensor</a></p>
+<p><code>Tensor.scatter_</code>(<em><code>dim</code></em>,
+<em><code>index</code></em>, <em><code>src</code></em>,
+<em><code>reduce=None</code></em>) → <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor">Tensor</a></p>
 <p>我们首先通过阅读<a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.Tensor.scatter_.html#torch.Tensor.scatter_">官方文档</a>来看看这个函数的作用是什么。翻译过来主要意思就是，将<code>src</code>中的元素，按照index的顺序放入<code>dim</code>维度中。下面还举了一个3-D的例子</p>
-<figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs inform7">self<span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 0<br>self<span class="hljs-comment">[i]</span><span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span><span class="hljs-comment">[k]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 1<br>self<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[index<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>]</span> = src<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span><span class="hljs-comment">[k]</span>  # if dim == 2<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">self[index[i][j][k]][j][k] = src[i][j][k]  <span class="hljs-comment"># if dim == 0</span><br>self[i][index[i][j][k]][k] = src[i][j][k]  <span class="hljs-comment"># if dim == 1</span><br>self[i][j][index[i][j][k]] = src[i][j][k]  <span class="hljs-comment"># if dim == 2</span><br></code></pre></td></tr></table></figure>
 <p>如果你能一眼看出这个是怎么做的，那就可以退出不用看了。这三行表示的是在三个不同维度上对将src写到self函数中的效果。其中最关键的位置是<code>index[i][j][k]</code>，因为它决定了<code>src[i][j][k]</code>放进self中的位置。因此，<code>src</code>每个维度都必须&gt;=<code>index</code>的每个维度，因为每个<code>index[i][j][k]</code>都对应着一个<code>src[i][j][k]</code>。</p>
 <p>我通过二维的例子来进行解释。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python">x = torch.zeros((<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#         [0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#		  [0., 0., 0., 0., 0.]])</span><br><br>index = torch.tensor([[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>],[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]])<br><span class="hljs-comment"># tensor([[1, 0, 2, 1, 1],</span><br><span class="hljs-comment">#         [0, 1, 1, 0, 2]])</span><br><br>src = torch.randn((<span class="hljs-number">2</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[-0.4014, -0.7197,  1.1508,  1.1462, -1.0964],</span><br><span class="hljs-comment">#         [ 1.0820, -2.2081,  0.6046,  0.3120, -0.1554]])</span><br><br>x = x.scatter_(dim=<span class="hljs-number">0</span>, index=index, src=src)<br><span class="hljs-comment"># tensor([[ 1.0820, -0.7197,  0.0000,  0.3120,  0.0000],</span><br><span class="hljs-comment">#         [-0.4014, -2.2081,  0.6046,  1.1462, -1.0964],</span><br><span class="hljs-comment">#         [ 0.0000,  0.0000,  1.1508,  0.0000, -0.1554]])</span><br></code></pre></td></tr></table></figure>
 <p>上面怎么得到的呢？你可以按照下面的方式想，就能很容易直观得到结果。</p>
 <p>我们先将<code>index</code>每个位置上的数与<code>src</code>中每个位置上的数对应起来，如下图</p>
-<p><img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20211217163352654.png" srcset="/img/loading.gif" lazyload alt="index与src的对应关系"></p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20211217163352654.png" srcset="/img/loading.gif" lazyload alt="index与src的对应关系">
+<figcaption aria-hidden="true">index与src的对应关系</figcaption>
+</figure>
 <p>这样，每个<code>index</code>的位置，都对应着相应位置一个<code>src</code>的数。我们先在脑子中建立这样一个对应关系的印象，下面会用到这个对应关系。</p>
 <p>通过给的示例<code>self[index[i][j][k]][j][k] = src[i][j][k]</code>可以发现<code>src</code>中的<code>!dim</code>维度的索引（在这个例子中<code>dim=0</code>，<code>!dim</code>列就是第<code>1</code>维度），与<code>x</code>中对应维度的索引一一对应的，<strong>也就是说<code>src</code>第<code>j</code>列的数字，一定是放到<code>x</code>的第<code>j</code>列</strong>，那么你将<code>src</code>想成一列一列的数</p>
-<p><img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20211217164211956.png" srcset="/img/loading.gif" lazyload alt="按照列划分src"></p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20211217164211956.png" srcset="/img/loading.gif" lazyload alt="按照列划分src">
+<figcaption aria-hidden="true">按照列划分src</figcaption>
+</figure>
 <p>每一列的数，都要放到<code>x</code>的对应列中去，我们来看结果是不是这样的</p>
-<p><img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20211217164657790.png" srcset="/img/loading.gif" lazyload alt="scatter之后的x"></p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20211217164657790.png" srcset="/img/loading.gif" lazyload alt="scatter之后的x">
+<figcaption aria-hidden="true">scatter之后的x</figcaption>
+</figure>
 <p>可以看到，经过处理后，<code>x</code>的每一列数字，就是对应到<code>src</code>每一列数字上，只是在这一列上的顺序不同。那么这个顺序怎么确定呢？这就要用到我们上面画的对应关系了，<code>src</code>对应位置的<code>index</code>作为索引，放到<code>x</code>对应列上的位置去，就得到了最终结果。也就是说，<strong><code>index</code>的每一列都是作为<code>src</code>对应列的顺序存在的</strong>。</p>
 <p><strong>最后我们整合一遍，首先看参数<code>dim=0</code>，说明除了第<code>0</code>维度，在其他维度上，<code>src</code>与<code>x</code>的索引是一致的，具体到我们的例子里来说，就是<code>src</code>的每一列与<code>x</code>的每一列位置是对应的，要将<code>src</code>每一列元素，填充到<code>x</code>的每一列中去。但对应的列的填充顺序是什么呢？当然就是看<code>index</code>上，每一列的数字了。</strong></p>
 <p>下面我们再来举一个<code>dim=1</code>的例子。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python">x = torch.zeros((<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#         [0., 0., 0., 0., 0.],</span><br><span class="hljs-comment">#		  [0., 0., 0., 0., 0.]])</span><br><br>index = torch.tensor([[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>, <span class="hljs-number">2</span>]])<br><span class="hljs-comment"># tensor([[0, 1, 3, 2, 4],</span><br><span class="hljs-comment">#         [1, 3, 4, 0, 2]])</span><br><br>src = torch.randn((<span class="hljs-number">2</span>, <span class="hljs-number">5</span>))<br><span class="hljs-comment"># tensor([[ 0.2267, -1.5383, -1.1069, -1.3450, -0.5601],</span><br><span class="hljs-comment">#         [ 0.5058,  1.3454,  0.1888, -0.0366, -1.2225]])</span><br><br>x = x.scatter_(dim=<span class="hljs-number">1</span>, index=index, src=src)<br></code></pre></td></tr></table></figure>
 <p>大家可以先思考一下这个结果是什么？</p>
-<p>按照刚才的方法，首先由于<code>dim=1</code>，因此对于<code>!dim=1</code>的维度，<code>src</code>与<code>x</code>的索引是一致的，在本例中也就是行，<code>src</code>中每行元素应该填充到<code>x</code>的每一行去，因此，<code>x</code>的第三行肯定是空的，因为<code>src</code>只有两行数。而这两行数应该怎么填充呢？当然就是将<code>index</code>中对应行的数当作索引，把<code>src</code>中的数按照索引放到<code>x</code>中去啦。第一行是<code>[ 0.2267, -1.5383, -1.1069, -1.3450, -0.5601]</code>，索引为<code>[0, 1, 3, 2, 4]</code>，按照索引对第一行排序，<code>0.2267</code>放第<code>0</code>个位置，<code>-1.5383</code>放第<code>1</code>个位置，<code>-1.1069</code>放第<code>3</code>个位置…得到<code>[ 0.2267, -1.5383, -1.3450, -1.1069, -0.5601]</code>，第二行自己算算吧，最后结果就是</p>
+<p>按照刚才的方法，首先由于<code>dim=1</code>，因此对于<code>!dim=1</code>的维度，<code>src</code>与<code>x</code>的索引是一致的，在本例中也就是行，<code>src</code>中每行元素应该填充到<code>x</code>的每一行去，因此，<code>x</code>的第三行肯定是空的，因为<code>src</code>只有两行数。而这两行数应该怎么填充呢？当然就是将<code>index</code>中对应行的数当作索引，把<code>src</code>中的数按照索引放到<code>x</code>中去啦。第一行是<code>[ 0.2267, -1.5383, -1.1069, -1.3450, -0.5601]</code>，索引为<code>[0, 1, 3, 2, 4]</code>，按照索引对第一行排序，<code>0.2267</code>放第<code>0</code>个位置，<code>-1.5383</code>放第<code>1</code>个位置，<code>-1.1069</code>放第<code>3</code>个位置...得到<code>[ 0.2267, -1.5383, -1.3450, -1.1069, -0.5601]</code>，第二行自己算算吧，最后结果就是</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">tensor([[ <span class="hljs-number">0.2267</span>, -<span class="hljs-number">1.5383</span>, -<span class="hljs-number">1.3450</span>, -<span class="hljs-number">1.1069</span>, -<span class="hljs-number">0.5601</span>],<br>        [-<span class="hljs-number">0.0366</span>,  <span class="hljs-number">0.5058</span>, -<span class="hljs-number">1.2225</span>,  <span class="hljs-number">1.3454</span>,  <span class="hljs-number">0.1888</span>],<br>        [ <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>,  <span class="hljs-number">0.0000</span>]])<br></code></pre></td></tr></table></figure>
 
             </div>
@@ -295,7 +306,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/Pytorch%E7%AC%94%E8%AE%B0/">Pytorch笔记</a>
+                      <a class="hover-with-bg" href="/categories/pytorch%E7%AC%94%E8%AE%B0/">pytorch笔记</a>
                     
                   </div>
                 
@@ -303,7 +314,7 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/Pytorch/">Pytorch</a>
+                      <a class="hover-with-bg" href="/tags/pytorch/">pytorch</a>
                     
                   </div>
                 

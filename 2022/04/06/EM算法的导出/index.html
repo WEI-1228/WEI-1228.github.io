@@ -18,7 +18,7 @@
   <meta name="author" content="Bobo">
   <meta name="keywords" content="个人博客">
   
-  <title>【论文阅读】Reformer：The Efficient Transformer - 隔壁小店</title>
+  <title>EM算法的导出 - 隔壁小店</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
 
@@ -191,7 +191,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="【论文阅读】Reformer：The Efficient Transformer">
+            <span class="h2" id="subtitle" title="EM算法的导出">
               
             </span>
 
@@ -201,8 +201,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-01-23 14:43" pubdate>
-        2022年1月23日 下午
+      <time datetime="2022-04-06 13:07" pubdate>
+        2022年4月6日 下午
       </time>
     </span>
   
@@ -213,7 +213,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.3k 字
+      1.6k 字
     </span>
   
 
@@ -223,7 +223,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      38
+      21
        分钟
     </span>
   
@@ -261,113 +261,81 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">【论文阅读】Reformer：The Efficient Transformer</h1>
+            <h1 style="display: none">EM算法的导出</h1>
             
             <div class="markdown-body">
-              <p><strong><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=rkgNKkHtvB">原文🔗</a></strong></p>
-<h2 id="摘要">摘要</h2>
-<p>Transformer模型在许多任务上都取得了SOTA的结果，然而训练这些模型通常都需要非常大的开销，特别是对于长文本模型。本文介绍了两种让Transformer模型更加高效的方法。第一，将点积的attention机制用局部敏感哈希来替代（LSH），这让时间复杂度从<span class="math inline">\(O(L^2)\)</span>降到了<span class="math inline">\(O(LlogL)\)</span>，其中<span class="math inline">\(L\)</span>是文本的长度。第二，使用可逆的残差网络代替标准的残差层，这样能只保存一次激活单元，而非一般的N次，其中N为网络的层数。最终得到了模型Reformer，与普通的Transformer模型效果不相上下，但内存开销更小，并且更快。</p>
-<h2 id="简介">简介</h2>
-<p>为了解决普通的Transformer内存开销大，时间复杂度高的问题，本文运用了下列技术：</p>
-<ul>
-<li>可逆层（上一篇论文笔记介绍），能够只存储一层的激活单元</li>
-<li>将前馈层的激活单元拆分开来，并且分块处理它们，能降低空间复杂度</li>
-<li>基于LSH的近似attention计算将attention部分的时间复杂度从<span class="math inline">\(O(L^2)\)</span>降低到了<span class="math inline">\(O(L\text{log}L)\)</span></li>
-</ul>
-<p>本文主要研究上面的三种方法，并且发现它们对模型训练时的影响几乎可以忽略不计。将激活单元拆分只影响代码实现，每一层的数据在数值上与Transformer是一样的。应用可逆残差层确实改变了模型的结构，但是在实验中发现对模型的影响也是可以忽略不计的。最后，LSH是对attention的改进，也是对模型效果影响最大的地方，桶的数目对模型效果影响很大。经过实验作者发现一组参数既能提高模型的效率，又能得到与原始Transformer模型相似的实验结果。</p>
-<h2 id="局部敏感哈希注意力机制">局部敏感哈希注意力机制</h2>
-<p>再让我们先回顾一下标准的attention计算过程。</p>
-<h3 id="点积注意力">点积注意力</h3>
-<p>Transformer中的标准attention是归一化的点积attention。输入包括<span class="math inline">\(d_k\)</span>维的queries和keys以及<span class="math inline">\(d_v\)</span>维的values。然后计算每个query与所有keys的点积，除以<span class="math inline">\(\sqrt{d_k}\)</span>，然后通过一个<span class="math inline">\(softmax\)</span>层，得到values的权重。在计算的时候，对于所有query的attention计算过程是同时进行的，因为可以将计算过程转化为矩阵乘法。将query打包成矩阵<span class="math inline">\(Q\)</span>，keys和values矩阵打包成矩阵<span class="math inline">\(K\)</span>和<span class="math inline">\(V\)</span>，计算过程就是： <span class="math display">\[
-\text{Attention}(Q, K, V) =
-\text{softmax}(\frac{QK^T}{\sqrt{d_k}})V\tag{1}
-\]</span></p>
-<h3 id="多头注意力机制">多头注意力机制</h3>
-<p>Transformer并不是使用一个attention，而是使用多个attention，通过投影出<span class="math inline">\(h\)</span>组不同的
-queries，keys，values，得到<span class="math inline">\(h\)</span>个结果，然后拼接起来再进行一次投影，得到最后的结果。</p>
-<h3 id="节约内存的注意力机制">节约内存的注意力机制</h3>
-<p>为了计算attention消耗的内存，我们将重点放在attention计算公式(1)上。假设Q，K，V有相同的大小[<span class="math inline">\(batch\_size,length,d\_model\)</span>]</p>
-<p>。其中主要的问题在于<span class="math inline">\(QK^T\)</span>，它的维度是[<span class="math inline">\(batch\_size,length,length\)</span>]。在实验中，作者训练了64K长度的模型，就算把batch-size设为1，在32位浮点精度的情况下<span class="math inline">\(64K\times64K\)</span>的矩阵会消耗16G内存。这就会让模型变得非常不实用，难以处理长文本。但重要的是，这个<span class="math inline">\(QK^T\)</span>矩阵没必要完全存储在内存中，因为可以分开计算每个query的attention值，在内存中每次只计算<span class="math inline">\(\text{softmax}(\frac{q_iK^T}{\sqrt{d_k}})V\)</span>，然后反向传播需要用它来计算梯度的时候再重新算一遍就可以了。然而这样的方法并不是非常高效，但空间复杂度与文本长度成正比。</p>
-<h3 id="哈希注意力机制">哈希注意力机制</h3>
-<p>在LSH中，我们初始化两个tensor，Q=K和V，维度为<span class="math inline">\([batch\_size,length,d\_model]\)</span>。我们也保持了多头注意力机制并且将重点关注在公式(1)。如前文所述，最大的问题在于<span class="math inline">\(QK^V\)</span>这一项的复杂度是平方的。但我们感兴趣的是softmax(<span class="math inline">\(QK^T\)</span>)。由于softmax的结果取决于输入元素中最大的一项，因此对于query
-<span class="math inline">\(q_i\)</span>
-我们只需要将重点关注在K中与queries最近的keys上。例如，如果K的长度是64K，对于每个<span class="math inline">\(q_i\)</span>我们只需要考虑一小部分，比如32个或64个最接近的keys，其他的keys与query点积经过softmax得到的结果几乎为0，可以不用考虑。这样就变得高效多了，然而怎么快速的在keys中找到与query最近的那几个呢？</p>
-<h3 id="局部敏感哈希">局部敏感哈希</h3>
-<p>我们先看一个LSH简单的示意图：</p>
-<figure>
-<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20220124145006703.png" srcset="/img/loading.gif" lazyload alt="LSH示意图">
-<figcaption aria-hidden="true">LSH示意图</figcaption>
-</figure>
-<p>想象一个平面上有一个圆，上面有两个点x、y，将这个平面划分为四个部分（桶）（上图中的四个颜色），然后我们随机将这个圆圈旋转一个角度<span class="math inline">\(\theta_0\)</span>，x、y两个点会分别落到各自的部分。第一行三幅图中，x分别落在了0,1,2三个位置，y分别落在了3,2,0三个位置，那么在第一次和第三次旋转后，x和y是落在同一个组里，第二次旋转落在不同组里。这就是局部敏感哈希的原理，下面我们将这个原理应用在向量上。</p>
-<p>快速在高维空间找到最近的向量的问题也能通过局部敏感哈希(LSH)解决。我们定义一个哈希函数，能将向量x映射到一个哈希值h(x)，它能让相近的向量映射到相同的哈希值，而距离比较远的向量不能，这样的哈希函数就是一种局部敏感哈希。在上述问题中，我们确实就需要将相近的向量映射到相同的哈希值（桶），并且要尽量让每个桶尽量一样大。如果有了这样的一个哈希函数，我们的问题就解决了。</p>
-<p>我们通过随机投影来得到上述局部敏感哈希函数。如果我们要得到b个桶（将上图平面分为b份），那么就固定一个大小为<span class="math inline">\([d_k,b/2]\)</span>的随机矩阵<span class="math inline">\(R\)</span>，这个矩阵就相当于随机转动那个圆盘的力量，但转动的是一个向量。定义公式<span class="math inline">\(h(x)=argmax([xR;-xR])\)</span>，这个公式就是转动的方法，其中<span class="math inline">\([u;v]\)</span>表示两个向量连接。这个方法就是LSH，这也非常容易通过代码实现。</p>
-<h3 id="lsh注意力机制">LSH注意力机制</h3>
-<p>了解了LSH的原理，下面就介绍LSH
-attention。首先将普通的attention机制重写，对于每个query位置<span class="math inline">\(i\)</span>： <span class="math display">\[
-o_i=\sum\limits_{j\in\mathcal{P_i}}{\text{exp}(q_i\cdot
-k_j-z(i,\mathcal{P_i}))}v_j\\
-where\ \mathcal{P_i}={j:i\geq j}\tag{2}
-\]</span> 引入了标记<span class="math inline">\(\mathcal{P_i}\)</span>表示位置<span class="math inline">\(i\)</span>需要attend的位置，<span class="math inline">\(z\)</span>表示被除数的函数（比如softmax中的归一化项）。为了更加清晰，忽略了<span class="math inline">\(\sqrt{d_k}\)</span>的缩放。</p>
-<p>这个公式实际上就是公式(1)的变形，公式(1)中的softmax拆开就是 <span class="math display">\[
-o_i=\sum\limits_{j\in\mathcal{P_i}}\frac{e^{q_i\cdot k_j}}{e^{q_1\cdot
-k_j}+e^{q_2\cdot k_j}+\cdots+e^{q_n\cdot k_j}}v_j
-\]</span> 然后让<span class="math inline">\(\text{exp}(z(i,\mathcal{P_i}))={e^{q_i\cdot
-k_j}}{e^{q_1\cdot k_j}+e^{q_2\cdot k_j}+\cdots+e^{q_n\cdot
-k_j}}\)</span>就得到了变形公式(2)。</p>
-<p>为了使代码支持batch操作，我们通常在一个大的集合<span class="math inline">\(\widetilde{\mathcal{P}}={0,1,\dots,l}\supseteq{\mathcal{P_i}}\)</span>里进行attention操作，但要把不属于<span class="math inline">\(\mathcal{P_i}\)</span>的元素mask掉： <span class="math display">\[
-o_i=\sum\limits_{j\in\widetilde{\mathcal{P}}_i}\text{exp}(q_i\cdot
-k_j-m(j,\mathcal{P_i})-z(i,\mathcal{P_i}))v_j\\
-\text{where}\ m(j,\mathcal{P_i})=
-\left\{
-\begin{array}{lc}
-\infty&amp;\text{if}\ j\notin\mathcal{P_i}\\
-0&amp;\text{otherwise}
-\end{array}
-\right.
-\tag{3}
-\]</span> 如果mask了，就相当于在分母上除了一个无穷大，就等于0。</p>
-<p>下面我们就能看LSH attention了，我们定义<span class="math inline">\(\mathcal{P_i}\)</span>为 <span class="math display">\[
-\mathcal{P_i}={j:h(q_i)=h(k_j)}\tag{4}
-\]</span> 也就是<span class="math inline">\(\mathcal{P_i}\)</span>包括所有与<span class="math inline">\(i\)</span>在同一个桶里的元素。</p>
-<p>以上就是哈希attention的原理。然而如果仅仅这样操作还是会有问题的。</p>
-<p>经过上述操作后，会得到<span class="math inline">\(b\)</span>个桶，一段文本的每个字的向量都会落到一个桶里，但潜在的问题是，每个桶里装的词向量数目是不均匀的，有的桶里多一些有的桶里少一些，甚至有可能某个桶里一个词向量都没有，这就让算法进行batch操作变得困难。为了解决这个问题，作者首先保证<span class="math inline">\(h(k_j)=h(q_j)\)</span>，也就是让每个词向量的query和key一定落在同一个桶中，通过设置<span class="math inline">\(k_j=\frac{q_j}{\Vert
-q_j\Vert}\)</span>（之前好像说了将query和key设成一样，不知道这里为什么又这样设，实际上后面的query和key是一样的）。然后将query按桶的序号进行排序，同一个桶内的query向量按照该词在句子中的位置进行排序。这样就定义了一种序号映射，<span class="math inline">\(i\mapsto s_i\)</span>，<span class="math inline">\(i\)</span>表示词在序列中的位置序号，<span class="math inline">\(s_i\)</span>表示排序后词所在的位置序号。将attention矩阵也经过这样排序后，在同一个桶内的词都会聚集在attention矩阵的对角线上，并且是连续的。然后我们就能进行batch操作了，定义一个长度<span class="math inline">\(m\)</span>，我们将排序后的query序列进行分块，每一块的长度就是<span class="math inline">\(m\)</span>。然后根据之前的定义，定义每个<span class="math inline">\(q_i\)</span>对应的 <span class="math display">\[
-\widetilde{\mathcal{P}}_i=\{ j:\lfloor \frac{s_i}{m}\rfloor - 1\ \le
-\lfloor\frac{s_j}{m}\rfloor \le \lfloor \frac{s_i}{m} \rfloor \}\tag{5}
-\]</span> 这个<span class="math inline">\(\widetilde{\mathcal{P}}_i\)</span>表示的是位置i的词能attention
-to的所有词的集合，其中可能包含了不能attend
-to的词，需要用mask给去掉。这样一来对于所有的输入向量，我们都能用相同的代码计算attention矩阵了，每个输入向量不同的地方就是mask不同。在实验中，作者设置<span class="math inline">\(m=\frac{2l}{n_{buckets}}\)</span>，每个桶的平均大小为<span class="math inline">\(l/n_{buckets}\)</span>，设置m为其两倍，也就相当于左右各分一半，这里作者假设每个桶大小达到平均大小两倍的概率非常小。下图就是LSH
-attention的全过程。</p>
-<figure>
-<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20220124174413183.png" srcset="/img/loading.gif" lazyload alt="LSH attention过程与attention矩阵">
-<figcaption aria-hidden="true">LSH
-attention过程与attention矩阵</figcaption>
-</figure>
-<p>首先看左图，第一行是未排序的query=key，然后将每个位置的key分配到一个桶中，每个桶用不同颜色表示。分配完之后先通过桶序号进行排序，得到第三行的结果。然后将这段序列进行分块，每块大小为<span class="math inline">\(m\)</span>。最后进行在<span class="math inline">\(\widetilde{\mathcal{P}}_i\)</span>内进行attention操作。</p>
-<p>接着是右图，我们看到a图是标准的attention矩阵，非常稀疏但是没有好好利用这些稀疏。b图是经过桶操作并且排序后的结果。c图让Q=K。d图进行分块操作。</p>
-<h3 id="多轮lsh注意力">多轮LSH注意力</h3>
-<p>由于hash操作是随机的，难免会出现错误情况，但出错的概率能通过多次hash操作减小。假设我们进行<span class="math inline">\(n_{rounds}\)</span>轮不同的hash操作<span class="math inline">\(\{h^{1},h^{2},h^{3},\dots,h^{n_{rounds}}
-\}\)</span>，那么最能得到： <span class="math display">\[
-\widetilde{\mathcal{P}}_i=\mathop{\cup}\limits_{r=1}^{n_{rounds}}\mathcal{P}_i^{(r)}\\
-\text{where} \ \mathcal{P}^{(r)}=\{ j:h^{(r)}(q_i)=h^{(r)}(q_j)
-\}\tag{6}
-\]</span></p>
-<h2 id="可逆transformer">可逆Transformer</h2>
-<p>上面的内容解决了Transformer模型的注意力机制复杂度高问题，这里的方法会进一步节省模型的内存消耗。可逆残差网络在上一篇笔记中已经介绍过了。实际上我是为了读懂这里的方法才去看那篇论文的，于是先写了那篇论文笔记作为铺垫。如果没看的话可以先看上一篇论文方法再来继续看这。我就不再解释一遍revnet的方法了，这里实际就直接将revnet的思想运用到了Transformer模型的残差结构中。我将公式再贴一遍，前向传播：
+              <p>本文主要对EM算法进行推导导出，不细讲EM算法的背景与原理，如果想从头开始学EM算法可以看李航老师的统计学习方法，或B站徐亦达老师的EM算法推导，我认为举得例子非常清楚，能很清楚的了解EM算法能干什么，在干什么。</p>
+<h2 id="em算法流程">EM算法流程</h2>
+<p><strong>输入</strong>：观测变量数据<span class="math inline">\(Y\)</span>，隐变量数据<span class="math inline">\(Z\)</span>，联合概率分布<span class="math inline">\(P(Y,Z|\theta)\)</span>，条件分布<span class="math inline">\(P(Z|Y,\theta)\)</span>；</p>
+<p><strong>输出</strong>：模型参数<span class="math inline">\(\theta\)</span></p>
+<p>（1）选择参数的初值<span class="math inline">\(\theta^{(0)}\)</span>，开始迭代；</p>
+<p>（2）<span class="math inline">\(E\)</span>步：记<span class="math inline">\(\theta^{(i)}\)</span>为第<span class="math inline">\(i\)</span>次迭代参数<span class="math inline">\(\theta\)</span>的估计值，在第<span class="math inline">\(i+1\)</span>次迭代的<span class="math inline">\(E\)</span>步，计算 <span class="math display">\[
+\begin{equation}
+\begin{aligned}
+Q(\theta,\theta^{(i)})&amp;=E_Z[\text{log}P(Y,Z|\theta)]\\
+&amp;=\sum_Z \log P(Y,Z|\theta)P(Z|Y,\theta^{(i)})
+\end{aligned}
+\end{equation}\tag{1}\label{aaa}
+\]</span> 这里，<span class="math inline">\(P(Z|Y,\theta^{(i)})\)</span>是在给定观测数据<span class="math inline">\(Y\)</span>和当前的参数估计<span class="math inline">\(\theta^{(i)}\)</span>下隐变量数据<span class="math inline">\(Z\)</span>的条件概率分布；</p>
+<p>（3）<span class="math inline">\(M\)</span>步：求使<span class="math inline">\(Q(\theta,\theta^{(i)})\)</span>极大化的<span class="math inline">\(\theta\)</span>，确定第<span class="math inline">\(i+1\)</span>次迭代的参数估计值<span class="math inline">\(\theta^{(i+1)}\)</span> <span class="math display">\[
+\begin{equation}
+\theta^{(i+1)}=\text{arg}\max_\theta Q(\theta,\theta^{(i)})
+\end{equation}\tag{2}
+\]</span> （4）重复（2），（3）步直到收敛。</p>
+<p>上式中的<span class="math inline">\(Q(\theta,\theta^{(i+1)})\)</span>是算法的核心，该函数成为<span class="math inline">\(Q\)</span>函数。以上算法便是<span class="math inline">\(EM\)</span>算法的核心步骤。我看了很多书上还有视频课讲解都是先直接放个公式给你，然后再讲一大堆解释这个公式。我就是经理这样的痛苦过来的，看到别人列了这个公式我就听不下去了，完全不知道这个公式在干什么。下面我就简单推导一下这个公式怎么来的。</p>
+<h2 id="em算法导出">EM算法导出</h2>
+<p>学过很多机器学习算法的人都知道，大部分算法的优化方法都是通过极大化对数似然函数<span class="math inline">\((MLE)\)</span>推导出来的，也就是对观测到的数据的概率的对数似然函数极大化，然后求得参数<span class="math inline">\(\theta\)</span>，也就是<span class="math inline">\(\text{arg}\max_\theta \log
+P(Y|\theta)\)</span>，<span class="math inline">\(Y\)</span>就是观测数据<span class="math inline">\({y_1,y_2,\dots,y_n}\)</span>。在EM算法中也不例外，也要通过极大化对数似然函数开始推导，即极大化<span class="math inline">\(L(\theta)=\log
+P(Y|\theta)\)</span>。由于EM算法是含有隐变量<span class="math inline">\(Z\)</span>的算法，意思就是每个数据<span class="math inline">\(y_i\)</span>是由某个隐变量<span class="math inline">\(z_j\)</span>得到的。举个例子，两枚不同的硬币进行投掷，第一枚硬币(A)正面概率为<span class="math inline">\(p\)</span>，第二枚硬币(B)正面概率为<span class="math inline">\(q\)</span>，我们得到一个观测序列<span class="math inline">\(\{
+1,1,0,1,0,0,1,0,1,1\}\)</span>，但是我们不知道每一个结果是由A还是由B投掷得到的，这时候隐变量<span class="math inline">\(Z\)</span>就相当于某一枚硬币，我们无法观测到，但实际存在这样的变量，因此称为隐变量。懂了隐变量的概念后，就能对公式进行变形
 <span class="math display">\[
-y_1=x_1+\mathcal{F}(x_2)\\
-y_2=x_2+\mathcal{G}(y_1)\tag{7}
-\]</span> 反向传播： <span class="math display">\[
-x_2=y_2-\mathcal{G}(y_1)\\
-x_1=y_1-\mathcal{F}(x_2)\tag{8}
-\]</span> 将<span class="math inline">\(\mathcal{F}\)</span>换成<span class="math inline">\(\text{Attention}\)</span>，<span class="math inline">\(\mathcal{G}\)</span>换成<span class="math inline">\(\text{FeedForward}\)</span>就得到了可逆的Transformer，作者将归一化层放到了残差结构中去，也就是<span class="math inline">\(\mathcal{F,G}\)</span>中。</p>
-<h2 id="分块">分块</h2>
-<p>由于前馈网络的每个激活单元是互不影响的，因此将输入的序列分块计算，计算完成后再合起来。假设我们将序列分成了<span class="math inline">\(c\)</span>块，那么输出为： <span class="math display">\[
-Y_2=[Y_2^{(1)};\dots;Y_2^{(c)}]=[X_2^{(1)}+\text{FeedForward}(Y_1^{(1)});\dots;X_2^{(c)}+\text{FeedForward}(Y_1^{(c)})]\tag{9}
-\]</span>
-事实上我感觉这对模型还是有修改的，因为这样就相当于每块共用了前馈层的参数，原始的Transformer每一块的参数是不同的，能表示更多信息，这样做就有信息损失了。</p>
-<h2 id="总结">总结</h2>
-<p>这篇论文结合了Transformer的信息表示优点与RevNet的节省内存的优点以及LSH方法的速度优点，诞生了Reformer。</p>
+\begin{aligned}
+L(\theta)=\log P(Y|\theta)=\log \frac{P(Y,Z|\theta)}{P(Z|Y,\theta)}\\
+=\log P(Y,Z|\theta) - \log P(Z|Y,\theta)
+\end{aligned}\tag{3}
+\]</span> 这一步是通过<span class="math inline">\(P(Y,Z|\theta) =
+P(Y|\theta)P(Z|Y,\theta)\)</span>变形然后取<span class="math inline">\(\log\)</span>得到的。现在我们得到公式 <span class="math display">\[
+\log P(Y|\theta)=\log P(Y,Z|\theta) - \log P(Z|Y,\theta)\tag{4}
+\]</span> 然后我们对两边式子取对<span class="math inline">\(Z\)</span>的期望，得到 <span class="math display">\[
+E_Z[\log P(Y|\theta)]=E_Z[\log P(Y,Z|\theta) - \log
+P(Z|Y,\theta)]\tag{5}
+\]</span> 由于左边的<span class="math inline">\(P\)</span>内不包含变量<span class="math inline">\(Z\)</span>，因此相当于对常数取期望，结果就是<span class="math inline">\(\log P(Y|\theta)\)</span>， <span class="math display">\[
+\begin{aligned}
+\log P(Y|\theta)&amp;=E_Z[\log P(Y,Z|\theta) - \log P(Z|Y,\theta)]\\
+&amp;=\sum_ZP(Z|Y,\theta^{(i)})\log
+P(Y,Z|\theta)-\sum_ZP(Z|Y,\theta^{(i)})\log P(Z|Y,\theta)
+\end{aligned}\tag{6}
+\]</span> 上面所说的对<span class="math inline">\(Z\)</span>取期望，取的<span class="math inline">\(Z\)</span>的概率就是<span class="math inline">\(P(Z|Y,\theta^{(i)})\)</span>。</p>
+<blockquote>
+<p>注意，由于<span class="math inline">\(Y\)</span>表示的是所有数据，对于上面的硬币模型来说，如果投掷了3次，那么其结果可能为<span class="math inline">\(Y=\{0,1,1\}\)</span>，而这时候的<span class="math inline">\(Z\)</span>就有<span class="math inline">\(2^3\)</span>种可能了，因为每个位置的观测都可能由硬币A或硬币B得到，因此<span class="math inline">\(\sum_Z\)</span>有8项。</p>
+</blockquote>
+<p>有没有觉得上式有点眼熟？没错，上式中的第一项就是EM算法中的<span class="math inline">\(Q\)</span>函数<span class="math inline">\(\eqref{aaa}\)</span>。我们说要将概率的似然函数<span class="math inline">\(P(Y|\theta)\)</span>极大化，按照上面的公式，左右两边都对<span class="math inline">\(\theta\)</span>极大化，我们会发现右边多了一项
+<span class="math display">\[
+H(\theta,\theta^{(i)})=\sum_ZP(Z|Y,\theta^{(i)})\log
+P(Z|Y,\theta)\tag{7}
+\]</span> 如果没有这一项，那么<span class="math inline">\(Q\)</span>函数就是我们的优化目标了，我们也就将优化目标从头推出来了，但事实上就是有这一项，那是EM算法有问题，把这一项省了吗？并不是，下面我们继续推导。</p>
+<p>我们将上式记为<span class="math inline">\(H(\theta,\theta^{(i)})\)</span>函数，那么 <span class="math display">\[
+\log P(Y|\theta) = Q(\theta,\theta^{(i)})-H(\theta,\theta^{(i)})\tag{8}
+\]</span> 由于我们在EM算法中就是要对<span class="math inline">\(Q\)</span>函数极大化，因此迭代后的一定有<span class="math inline">\(Q(\theta,\theta^{(i+1)})\geq
+Q(\theta,\theta^{(i)})\)</span>，我们来看第二项 <span class="math display">\[
+H(\theta^{(i+1)},\theta^{(i)})-H(\theta^{(i)},\theta^{(i)})=\sum_Z \log
+(\frac{P(Z|Y,\theta^{(i+1)})}{P(Z|Y,\theta^{(i)})})P(Z|Y,\theta^{(i)})\tag{9}
+\]</span> 如果我们将其看成期望形式，<span class="math inline">\(P(Z|Y,\theta^{(i)})\)</span>是概率<span class="math inline">\(P(X)\)</span>，<span class="math inline">\(\log
+(\cdot)\)</span>是待求的期望函数<span class="math inline">\(\log
+(Y)\)</span>，而且<span class="math inline">\(\log\)</span>函数是凸函数，那么根据<span class="math inline">\(Jensen\)</span>不等式，我们能得到<span class="math inline">\(E[f(x)]\leq f(E[x])\)</span>，上面的式子就是<span class="math inline">\(E[f(x)]\)</span>，而 <span class="math display">\[
+\begin{aligned}
+f(E[x])&amp;=\log (\sum_Z
+\frac{P(Z|Y,\theta^{(i+1)})}{P(Z|Y,\theta^{(i)})}{P(Z|Y,\theta^{(i)})})\\
+&amp;=\log {\sum_Z P(Z|Y,\theta^{(i+1)})}\\
+&amp;=\log 1=0
+\end{aligned}\tag{10}
+\]</span> 也就是说，每一轮迭代不管<span class="math inline">\(\theta^{(i+1)}\)</span>是多少，<span class="math inline">\(H(\theta,\theta^{(i)})\)</span>都是在减小的，综合起来看，<span class="math inline">\(Q\)</span>每轮增加，<span class="math inline">\(H\)</span>每轮减小，那么<span class="math inline">\(Q-H\)</span>每轮肯定是在增加的，我们也就证明了在每轮迭代之后，<span class="math inline">\(\log P(Y|\theta)\)</span>每轮都是在增大的。</p>
+<p>到此我们就推导出了要使变量的似然函数变大，只需要对函数<span class="math inline">\(Q\)</span>优化，求每轮使函数<span class="math inline">\(Q\)</span>最大的<span class="math inline">\(\theta\)</span>即可，也就是 <span class="math display">\[
+\theta^{(i+1)}=\text{arg}\max_\theta Q(\theta,\theta^{(i)})
+\]</span></p>
+<h2 id="参考">参考</h2>
+<p>李航《统计学习方法》</p>
+<p>徐亦达机器学习：Expectation Maximization EM算法</p>
 
             </div>
             <hr>
@@ -377,7 +345,7 @@ Y_2=[Y_2^{(1)};\dots;Y_2^{(c)}]=[X_2^{(1)}+\text{FeedForward}(Y_1^{(1)});\dots;X
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
+                      <a class="hover-with-bg" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>
                     
                   </div>
                 
@@ -385,9 +353,9 @@ Y_2=[Y_2^{(1)};\dots;Y_2^{(c)}]=[X_2^{(1)}+\text{FeedForward}(Y_1^{(1)});\dots;X
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
+                      <a class="hover-with-bg" href="/tags/EM%E7%AE%97%E6%B3%95/">EM算法</a>
                     
-                      <a class="hover-with-bg" href="/tags/Transformer/">Transformer</a>
+                      <a class="hover-with-bg" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a>
                     
                   </div>
                 
@@ -404,9 +372,9 @@ Y_2=[Y_2^{(1)};\dots;Y_2^{(c)}]=[X_2^{(1)}+\text{FeedForward}(Y_1^{(1)});\dots;X
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/04/04/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Linear-Transformer/">
+                      <a href="/2022/04/16/%E4%B8%BA%E4%BB%80%E4%B9%88RNN%E4%B8%AD%E7%9A%84batch-size%E9%83%BD%E5%9C%A8%E7%AC%AC%E4%BA%8C%E7%BB%B4%E5%BA%A6/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">【论文阅读】Linear Transformer</span>
+                        <span class="hidden-mobile">为什么RNN中的batch_size都在第二维度</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -414,8 +382,8 @@ Y_2=[Y_2^{(1)};\dots;Y_2^{(c)}]=[X_2^{(1)}+\text{FeedForward}(Y_1^{(1)});\dots;X
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/01/02/2021%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/">
-                        <span class="hidden-mobile">2021年度总结</span>
+                      <a href="/2022/04/04/%E3%80%90%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E3%80%91Linear-Transformer/">
+                        <span class="hidden-mobile">【论文阅读】Linear Transformer</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

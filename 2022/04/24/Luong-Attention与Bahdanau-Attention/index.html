@@ -1,0 +1,741 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.svg">
+  <link rel="icon" href="/img/favicon.svg">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="(｡･∀･)ﾉﾞ嗨，你也是从隔壁来的吗？！">
+  <meta name="author" content="Bobo">
+  <meta name="keywords" content="个人博客">
+  
+  <title>Luong-Attention与Bahdanau-Attention - 隔壁小店</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+  
+<link rel="stylesheet" href="//at.alicdn.com/t/font_2889727_iagjslv6qh.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"blog.liujiawei.xyz","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":100,"cursorChar":"|","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"30b718b17a21323675e1dd271428f141","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"4AJakKYV66arv4EU62AtMzWP-gzGzoHsz","app_key":"wbrGfp6CAsTk5yf5pft407aA","server_url":"https://4ajakkyv.lc-cn-n1-shared.com"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>隔壁小店</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" target="_blank" rel="noopener" href="http://cloud.liujiawei.xyz">
+                <i class="iconfont icon-yunpanyunwenjian"></i>
+                云盘
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" target="_blank" rel="noopener" href="http://www.liujiawei.xyz">
+                <i class="iconfont icon-lianjie"></i>
+                小屋
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://cdn.jsdelivr.net/gh/WEI-1228/img-hosting@master/20211221/wallhaven-7315m3.1fl1p9c72ke8.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Luong-Attention与Bahdanau-Attention">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-04-24 10:56" pubdate>
+        2022年4月24日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.9k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      34
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- LeanCloud 统计文章PV -->
+      <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="leancloud-page-views"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Luong-Attention与Bahdanau-Attention</h1>
+            
+            <div class="markdown-body">
+              <p>最近正在看RNN相关内容，看Pytorch教程看到一个seq2seq对话机器人教程，里面用到了Attention，这种attention方法是Luong等人提出来的，因此我称为Luong-Attention。在看论文，网上搜索相关文章的时候，还看到了一个Bahdanau提出的Attention方法，称其为Bahdanau-Attention，我就也把这篇文章阅读了一下，下面分别介绍一下这两种Attention机制。</p>
+<h2 id="bahdanau-attention">Bahdanau-Attention</h2>
+<h3 id="rnn-encoder-decoder">RNN Encoder-Decoder</h3>
+<p>先简要介绍一下基于RNN
+Encoder-Decoder的翻译任务框架，该Attention机制就是基于这个框架之上，能让模型同时学习对齐和翻译。</p>
+<p>在Encoder-Decoder框架中，encoder先读入输入句子<span class="math inline">\(x=(x_1,\cdots,x_{T_x})\)</span>，将其转成上下文向量<span class="math inline">\(c\)</span>。最常见的方法就是用RNN <span class="math display">\[
+\begin{aligned}
+h_t=f(x_t, h_{t-1})\\
+c=q(\{ h_1,\cdots,h_{T_x} \})
+\end{aligned}\tag{1}\label{a}
+\]</span> 其中，<span class="math inline">\(h_{t}\in
+\mathcal{R^n}\)</span>是<span class="math inline">\(t\)</span>时刻输出的隐状态，<span class="math inline">\(c\)</span>是从句子每个词的隐状态生成的上下文向量。<span class="math inline">\(f、q\)</span>一般都是非线性函数。Sutskever et al.
+(2014)中，<span class="math inline">\(f=LSTM\)</span>，<span class="math inline">\(q({h_1,\cdots,h_{T_x}})=h_T\)</span>，也就是直接将输入的最后一个位置的隐状态当作上下文向量。</p>
+<p>decoder一般都是用来给定上下文向量<span class="math inline">\(c\)</span>，与之前所有预测出的单词<span class="math inline">\(y_1,\cdots,y_{t^{&#39;}-1}\)</span>，来预测下一个单词<span class="math inline">\(y_{t^{&#39;}}\)</span>。换句话说，decoder定义了输出翻译的y的概率，将其分解为顺序的联合概率的积：
+<span class="math display">\[
+p(y) = \mathop{\Pi}_{t=1}^Tp(y_t|\{y_1,\cdots,y_{t-1}\},
+c)\tag{2}\label{b}
+\]</span> 其中<span class="math inline">\(y=(y_1,\cdots,y_{T_y})\)</span>。有了RNN，每个条件概率都能通过模型计算为
+<span class="math display">\[
+p(y_t|\{ {y_1,\cdots,y_{t-1}\} },c)=g(y_{t-1},s_t,c)\tag{3}\label{c}
+\]</span> 其中，<span class="math inline">\(g\)</span>是非线性函数，潜在的多层的函数，能输出概率<span class="math inline">\(y_t\)</span>，<span class="math inline">\(s_t\)</span>是RNN的隐状态向量。需要注意的是，这个函数<span class="math inline">\(g\)</span>不光可以是RNN，还可以是RNN和de-convolutional网络的混合。</p>
+<h3 id="方法">方法</h3>
+<h4 id="encoder">Encoder</h4>
+<p>本文使用的Encoder是Bi-RNN双向循环神经网络，因为这样能让模型在输出某个单词的时候考虑到前后文的信息，不只考虑前面的信息。通过双向神经网络，我们能获得每个单词的前向隐状态向量<span class="math inline">\(\overrightarrow{h_1},\cdots,\overrightarrow{h_j}\)</span>和后向隐状态向量<span class="math inline">\(\overleftarrow{h_j}\,\cdots,\overleftarrow{h_j}\)</span>。然后我们将前后向每个位置的隐状态向量拼接起来，得到<span class="math inline">\(h_j=[\overrightarrow{h_j^T};\overleftarrow{h_j^T}]^T\)</span>。这样，每个向量表示<span class="math inline">\(h_j\)</span>都包含了前后向的信息，然后由于RNN更擅长表示附近的输入，因此向量表示<span class="math inline">\(h_j\)</span>更能表示<span class="math inline">\(x_j\)</span>的相关信息。</p>
+<h4 id="decoder">Decoder</h4>
+<p>通过上一节介绍的的RNN
+Encoder-Decoder框架，就能开始介绍Decoder中的Bahdanau-Attention机制了。在这个attention机制中，我们定义上面的条件概率公式<span class="math inline">\(\eqref{b}\)</span>为： <span class="math display">\[
+p(y_i|y_1,\cdots,y_{i-1},\bold{x})=g(y_{i-1},s_i,c_i)\tag{4}
+\]</span>
+通过该公式，我们就能计算出下一个时刻应该输出哪个单词，即概率<span class="math inline">\(y_i\)</span>最大的那个单词。其中<span class="math inline">\(s_i\)</span>是RNN在时刻<span class="math inline">\(i\)</span>的隐状态，计算公式是： <span class="math display">\[
+s_i=f(s_{i-1},y_{i-1},c_i)\tag{5}
+\]</span> 也就是说，<span class="math inline">\(s_i\)</span>的计算需要上一个时刻的隐状态<span class="math inline">\(s_{i-1}\)</span>和上一个时刻的输出<span class="math inline">\(y_{i-1}\)</span>，以及当前时刻的上下文向量<span class="math inline">\(c_i\)</span>的参与，这就说明<span class="math inline">\(c_i\)</span>的计算是先于<span class="math inline">\(s_i\)</span>的，计算<span class="math inline">\(c_i\)</span>不需要<span class="math inline">\(s_i\)</span>的参与。</p>
+<p>需要注意的是，不像当时已有的encoder-decoder模型方法，只考虑隐状态或之前输出的结果，这里还把上下文向量<span class="math inline">\(c_i\)</span>作为参数输入，这个<span class="math inline">\(c_i\)</span>是每个输出位置<span class="math inline">\(y_i\)</span>独有的参数，每个位置都需要动态计算出这个<span class="math inline">\(c_i\)</span>。</p>
+<p>上下文向量<span class="math inline">\(c\)</span>的计算依赖于encoder编码每个单词的隐状态向量<span class="math inline">\((h_1,\cdots,h_{T_x})\)</span>。每个向量<span class="math inline">\(h_i\)</span>都包含了输入序列的所有信息（因为encoder是Bi-RNN），但更注重在单词<span class="math inline">\(i\)</span>附近的信息。</p>
+<p>我们先来看看<span class="math inline">\(c_i\)</span>怎么计算，因为<span class="math inline">\(c_i\)</span>的计算不依赖于<span class="math inline">\(s_i\)</span>和<span class="math inline">\(y_i\)</span>，相反，这两个参数的计算都依赖于<span class="math inline">\(c_i\)</span>。<span class="math inline">\(c_i\)</span>是输入序列每个位置向量表示的加权求和：
+<span class="math display">\[
+c_i=\sum_{j=1}^{T_x}\alpha_{ij}h_j\tag{6}
+\]</span> <span class="math inline">\(\alpha_{ij}\)</span>就是当前输出位置<span class="math inline">\(i\)</span>对其他某个位置<span class="math inline">\(j\)</span>的权重，也就是说对于当前输出的单词<span class="math inline">\(i\)</span>，要考虑其与所有位置的权重，因此这样得到的每个位置的<span class="math inline">\(c_i\)</span>都是独立的，动态计算出来的： <span class="math display">\[
+\begin{aligned}
+\alpha_{ij}=\frac{\exp e_{ij}}{\sum_{k=1}^{T_x}\exp (e_{ik})}\\
+\text{where}\ e_{ik}=a(s_{i-1},h_k)
+\end{aligned}\tag{7}
+\]</span> <span class="math inline">\(\alpha_{ij}\)</span>的计算就是，计算当前输出位置<span class="math inline">\(i\)</span>的前一个位置的隐状态<span class="math inline">\(s_{i-1}\)</span>与所有单词的向量表示<span class="math inline">\(h_k\)</span>的相似度<span class="math inline">\(e_{ik}\)</span>（我这么称呼），然后将这个相似度通过一个softmax层，就得到了输出位置<span class="math inline">\(i\)</span>对每个输入位置<span class="math inline">\(j\)</span>的权重<span class="math inline">\(\alpha_{ij}\)</span>。那这个相似度<span class="math inline">\(e_{ik}\)</span>怎么计算，在这个方法中，就是简单的通过一个前馈神经网络来计算，参数随着整个网络一起优化。</p>
+<p>权重<span class="math inline">\(\alpha_{ij}\)</span>代表前一个位置<span class="math inline">\(i-1\)</span>隐状态<span class="math inline">\(s_{i-1}\)</span>与所有位置的向量表示的相关性，越相关则<span class="math inline">\(\alpha\)</span>越大，否则越小。这就在decoder上实现了attention机制，让模型自己选择哪一部分相关性最大，最关注哪一部分。</p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20220424144620347.png" srcset="/img/loading.gif" lazyload alt="模型流程">
+<figcaption aria-hidden="true">模型流程</figcaption>
+</figure>
+<p>上图就是整个模型的流程，再来梳理一遍。首先输入每个单词的词向量<span class="math inline">\(\{X_1,X_2,\cdots,X_T\}\)</span>，通过双向RNN转化为前向隐状态向量<span class="math inline">\(\{\overrightarrow{h_1},\cdots,\overrightarrow{h_j}\}\)</span>和后向隐状态向量<span class="math inline">\(\{\overleftarrow{h_j}\,\cdots,\overleftarrow{h_j}\}\)</span>，拼接成完整的隐状态向量<span class="math inline">\(\{h_j,\cdots,h_j\}\)</span>，这些是encoder的工作。然后开始进入decoder部分，对于每个输出位置<span class="math inline">\(i\)</span>，计算该位置前一个位置的输出隐向量<span class="math inline">\(s_i\)</span>与所有位置的单词隐向量<span class="math inline">\(h_j\)</span>，计算attention的权重<span class="math inline">\(\alpha_{ij}\)</span>，进而计算上下文向量<span class="math inline">\(c_i\)</span>，再通过<span class="math inline">\(c_i\)</span>计算当前位置的隐状态向量<span class="math inline">\(s_i\)</span>,最后计算当前时刻<span class="math inline">\(i\)</span>的输出概率，得到当前时刻输出的单词<span class="math inline">\(y_i\)</span>。</p>
+<hr>
+<h2 id="luong-attention">Luong-Attention</h2>
+<p>Luong-Attention提出了多种方法，但这些不同的方法的不同在于，求每个位置的上下文表示向量<span class="math inline">\(c_i\)</span>的方法不同。之后的流程都是一样的。我就先介绍一下所有的流程，再介绍不同的求<span class="math inline">\(c_i\)</span>的方法。</p>
+<h3 id="整体流程">整体流程</h3>
+<p>在Luong-Attention中，使用了多层单向LSTM作为编码器，先将输入文本向量转化为隐向量，每个单词t都对应有一个输出的隐向量<span class="math inline">\(\overline
+h_s\)</span>。然后利用输入位置的隐向量<span class="math inline">\(\overline
+h_s\)</span>，通过上面说的不同方法，得到每个输出位置对应的上下文向量<span class="math inline">\(c_t\)</span>。对于某个输出时刻<span class="math inline">\(t\)</span>，通过RNN能得到输出的隐向量<span class="math inline">\(h_t\)</span>,通过拼接结合<span class="math inline">\(h_t\)</span>和<span class="math inline">\(c_t\)</span>，得到注意力化的隐向量 <span class="math display">\[
+\tilde h_t=\tanh (W_c[c_t;h_t])\tag{8}
+\]</span> 注意力化的向量<span class="math inline">\(\tilde
+h_t\)</span>然后送到softmax层，得到输出单词的概率分布，就能用损失函数进行参数更新了：
+<span class="math display">\[
+p(y_t|y_{&lt;t},x)=\text{softmax}(W_s\tilde h_s)\tag{9}
+\]</span> 下面我们具体介绍一下怎么计算上下文向量<span class="math inline">\(c_t\)</span>。</p>
+<h3 id="全局attention">全局Attention</h3>
+<p>全局attention就是计算<span class="math inline">\(c_t\)</span>的时候，要考虑所有输入单词的隐向量，与Bahdanau-Attention中计算上下文向量的方法一样，给每个输入单词的隐状态一个权重，将所有隐状态加权求和，就能得到<span class="math inline">\(c_t\)</span>。时刻<span class="math inline">\(t\)</span>，第<span class="math inline">\(s\)</span>个隐状态向量的权重计算公式如下： <span class="math display">\[
+\begin{aligned}
+a_t(s)&amp;=\text{align}(h_t,\overline h_s)\\
+&amp;=\frac{\exp ({\text{score}(h_t,\overline
+h_s)})}{\sum_{s^{&#39;}}\exp ({\text{score}(h_t,\overline
+h_{s^{&#39;}})})}\\
+\end{aligned}\tag{10}\label{eq:10}
+\]</span> 其中的score函数是一个基于内容的函数，有三种不同的可选形式：
+<span class="math display">\[
+\begin{equation}
+\text{score}(h_t,\overline h_s)=
+\left\{
+\begin{array}{ll}
+h_t^T \overline h_s &amp; dot\\
+h_t^T W_a\overline h_s &amp; general\\
+v_a^T\tanh (W_a[h_t;\overline h_s]) &amp; concat
+\end{array}
+\right.
+\end{equation}\tag{11}
+\]</span> 与Bahdanau-Attention的比较：</p>
+<ul>
+<li>本方法中encoder和decoder使用的都是单向LSTM最顶层的输出，而Bah的encoder使用双向RNN前向后向输出的结合</li>
+<li>本方法中的计算流程是<span class="math inline">\(h_t \rightarrow a_t
+\rightarrow c_t \rightarrow \tilde
+h_t\)</span>，先计算当前时刻输出的权重，再通过RNN输出的所有输入位置隐状态计算attention权重，然后通过权重加权得到上下文向量，最后得到最终的注意力化的隐状态；而Bah
+attention的流程是<span class="math inline">\(s_{t-1} \rightarrow a_t
+\rightarrow c_t \rightarrow s_t\)</span></li>
+<li>最后，Bah
+attention只尝试了concat形式的打分函数，而本方法尝试了三种，并且证明了有其他方法比concat方法更好。</li>
+</ul>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20220424163732940.png" srcset="/img/loading.gif" lazyload alt="全局attention示意图">
+<figcaption aria-hidden="true">全局attention示意图</figcaption>
+</figure>
+<h3 id="局部attention">局部Attention</h3>
+<p>与全局对应的就是局部了，就是不把所有的输入单词的隐状态都用上，而只用部分，来计算上下文向量<span class="math inline">\(c_t\)</span>。具体用哪一部分呢？当然是由模型自己来选择。具体来说，首先模型在输出时刻<span class="math inline">\(t\)</span>生成一个位置<span class="math inline">\(p_t\)</span>，用于计算<span class="math inline">\(c_t\)</span>的隐向量都从窗口<span class="math inline">\([p_t-D,p_t+D]\)</span>中获得，<span class="math inline">\(D\)</span>是个超参数。怎么生成位置<span class="math inline">\(p_t\)</span>呢，又有两种方法。</p>
+<ul>
+<li><p>第一种是固定<span class="math inline">\(p_t=t\)</span>，假设窗口随着时间单调递增的。每个向量的权重<span class="math inline">\(a_t(s)\)</span>就通过公式<span class="math inline">\(\eqref{eq:10}\)</span>来计算</p></li>
+<li><p>第二种是让模型预测<span class="math inline">\(p_t\)</span>的位置，通过下面的公式</p></li>
+</ul>
+<p><span class="math display">\[
+p_t=S\dotproduct \text{sigmoid}(v_p^T\tanh (W_ph_t))\tag{12}
+\]</span></p>
+<p>​ 其中<span class="math inline">\(v_p\)</span>和<span class="math inline">\(W_p\)</span>都作为模型的参数来学习。<span class="math inline">\(S\)</span>是输入句子的长度，因此<span class="math inline">\(p_t\in[0, S]\)</span>。计算每个位置的权重<span class="math inline">\(a_t(s)\)</span>的时候，还添加了高斯分布，计算公式变成如
+下形式： <span class="math display">\[
+a_t(s)=\text{align}(h_t,\overline h_s)\exp
+({-\frac{(s-p_t)^2}{2\sigma^2}})\tag{13}
+\]</span> ​ 设置<span class="math inline">\(\sigma=\frac{D}{2}\)</span>。注意<span class="math inline">\(s\)</span>是相对于<span class="math inline">\(p_t\)</span>的位置。</p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20220424165630355.png" srcset="/img/loading.gif" lazyload alt="局部attention示意图">
+<figcaption aria-hidden="true">局部attention示意图</figcaption>
+</figure>
+<h3 id="前向输入法">前向输入法</h3>
+<p>在机器翻译任务中，通常会维持一个输入集合，如果已经翻译过了就不应该继续翻译，而本方法在翻译的时候是独立的。因此，提出了前向输入的方法，将当前的输出<span class="math inline">\(h_t\)</span>当作下一个时刻输入的一部分。</p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/WEI-1228/image/blog-image/image-20220424171327770.png" srcset="/img/loading.gif" lazyload alt="image-20220424171327770">
+<figcaption aria-hidden="true">image-20220424171327770</figcaption>
+</figure>
+<p>如图中虚线所示，将原本的输入与上一个时刻的输出拼接起来，当作这个时刻的输入。这样有两个好处：</p>
+<ul>
+<li>能让模型知道之前的信息，以便做出判断</li>
+<li>让这个模型同时获取深度和广度的信息</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>两种Attention模型都是很早提出的attention，实现attention的方法都使用了softmax函数，都有上下文向量<span class="math inline">\(c_t\)</span>，但是两个上下文向量的用法不一样。在Bahdanau-Attention中，<span class="math inline">\(c_t\)</span>是用来计算时刻<span class="math inline">\(t\)</span>的隐向量<span class="math inline">\(s_t\)</span>，并且还用来计算最后的概率<span class="math inline">\(p(y)\)</span>；而在Luong-Attention中，<span class="math inline">\(c_t\)</span>直接与时刻<span class="math inline">\(t\)</span>的隐向量拼接，用来预测概率<span class="math inline">\(p(y)\)</span>。总的来说，Bahdanau-Attention的计算方法更复杂一些，需要计算一个中间量<span class="math inline">\(s_i\)</span>,Luong-Attention相对较简单一些，也更符合直觉。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Attention/">Attention</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Attention/">Attention</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/04/16/%E4%B8%BA%E4%BB%80%E4%B9%88RNN%E4%B8%AD%E7%9A%84batch-size%E9%83%BD%E5%9C%A8%E7%AC%AC%E4%BA%8C%E7%BB%B4%E5%BA%A6/">
+                        <span class="hidden-mobile">为什么RNN中的batch_size都在第二维度</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"RQM64KPsC8Stf23bb41EnQx5-gzGzoHsz","appKey":"A7gSBbMzN8gDs9qoI84fYzJ8","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <div style="font-size: 0.85rem"> <span id="timeDate">载入天数...</span> <span id="times">载入时分秒...</span> <script src="/js/duration.js"></script> </div> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- LeanCloud 统计PV -->
+        <span id="leancloud-site-pv-container" style="display: none">
+            总访问量 
+            <span id="leancloud-site-pv"></span>
+             次
+          </span>
+      
+      
+        <!-- LeanCloud 统计UV -->
+        <span id="leancloud-site-uv-container" style="display: none">
+            总访客数 
+            <span id="leancloud-site-uv"></span>
+             人
+          </span>
+      
+
+    
+  </div>
+
+
+  
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        赣ICP备2021004183号-1
+      </a>
+    </span>
+    
+      
+        <span>
+          <a
+            href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=36102802362535"
+            rel="nofollow noopener"
+            class="beian-police"
+            target="_blank"
+          >
+            
+              <span style="visibility: hidden; width: 0">|</span>
+              <img src="/img/police_beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+            
+            <span>赣公网安备36102802362535号</span>
+          </a>
+        </span>
+      
+    
+  </div>
+
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3.1.4/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+  
+    <!-- Baidu Analytics -->
+    <script defer>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?30b718b17a21323675e1dd271428f141";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":0.8,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"left","hOffset":0,"vOffset":-60},"mobile":{"show":true,"scale":0.5},"log":false});</script></body>
+</html>
